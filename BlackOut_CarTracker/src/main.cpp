@@ -6,8 +6,8 @@ ORIENTATION ori;
 
 void setup()
 {
-  delay(1000);
   Serial.begin(115200);
+  /*
   Serial.println("MPU-9250 DMP Quaternion Test");
 
   if (!imu.begin(true, 10)) //Activate data fusion
@@ -24,6 +24,7 @@ void setup()
     while (1)
       ;
   }
+  */
 }
 
 int calibration_MotionCal()
@@ -59,8 +60,66 @@ int calibration_MotionCal()
   return 1;
 }
 
+void serialFloatPrint(HardwareSerial SerialComm ,float f) {
+  byte * b = (byte *) &f;
+  //Serial.print("f:");
+  for(int i=0; i<4; i++) {
+    
+    byte b1 = (b[i] >> 4) & 0x0f;
+    byte b2 = (b[i] & 0x0f);
+    
+    char c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
+    char c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
+    
+    SerialComm.print(c1);
+    SerialComm.print(c2);
+  }
+}
+
+void sendData(String Name, float Value, HardwareSerial SerialComm)
+{
+    SerialComm.print('@');
+    SerialComm.print(Name);
+    SerialComm.print("#");
+    serialFloatPrint(SerialComm, Value);
+}
+
 void loop()
 {
+  for (int i=0 ; i < 10 ; i++)
+  {
+    sendData("PIs", i*PI, Serial);
+    delay(500);
+
+    switch (i)
+    {
+    case 0:
+      Serial.println("|Hey !");
+      break;
+    
+    case 1:
+      Serial.println("|Can");
+      break;
+
+    case 2:
+      Serial.println("|you");
+      break;
+
+    case 3:
+      Serial.println("|hear");
+      break;
+    
+    case 4:
+      Serial.println("|me ?");
+      break;
+    
+    default:
+      break;
+    }
+  }
+  
+
+  /*
   if (imu.read(acc, gyr, mag, 0, &ori)) {
     Serial.print("Accelerometer: X=");
     Serial.print(acc[0]);
@@ -70,4 +129,5 @@ void loop()
     Serial.print(acc[2]);
     Serial.println("g");
   }
+  */
 }

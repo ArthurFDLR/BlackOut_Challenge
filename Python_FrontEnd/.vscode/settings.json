@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "C:\\Users\\ArthF\\.platformio\\penv\\Scripts\\python.exe",
+    "python.formatting.provider": "yapf"
+}
