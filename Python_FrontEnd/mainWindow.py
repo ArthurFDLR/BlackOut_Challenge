@@ -34,7 +34,7 @@ class DebugMessage(Qtw.QFrame):
         self.mess.setText(message)
 
 class MainWindow(Qtw.QWidget):
-    sendMessage=Qt.pyqtSignal(MessageID,int,int,int,int)
+    sendMessage=Qt.pyqtSignal(str)
     def __init__(self):
         super().__init__()
         self.mainLayout=Qtw.QVBoxLayout(self)
@@ -43,6 +43,10 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.commWidget)
         self.debugWidget=DebugMessage()
         self.mainLayout.addWidget(self.debugWidget)
+
+        self.sendButton = Qtw.QPushButton("Click click")
+        self.mainLayout.addWidget(self.sendButton)
+        self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
         self.parserThread=Parser(self)
         self.parserThread.newData.connect(self.commWidget.update)

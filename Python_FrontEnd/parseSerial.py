@@ -46,8 +46,8 @@ class Parser(QThread):
         self.stop=False
         mainWindow.sendMessage.connect(self.sendMessage)
 
-    def sendMessage(self,messageID : MessageID,byte1,byte2,byte3,byte4):
-        self.ser.write(bytes([byte1,byte2,byte3,byte4,messageID.value,0]))
+    def sendMessage(self, char : str):
+        self.ser.write(char.encode('utf-8'))
         #self.ser.write(bytes.fromhex("010203040200"))
         print("send")
     

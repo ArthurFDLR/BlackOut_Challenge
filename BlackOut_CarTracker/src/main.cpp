@@ -88,34 +88,18 @@ void loop()
 {
   for (int i=0 ; i < 10 ; i++)
   {
+    
+    if (Serial.available() > 0)
+    {
+      if (char(Serial.read()) == '!')
+      {
+        Serial.print("|");
+        Serial.println(i);
+      }
+    }
+
     sendData("PIs", i*PI, Serial);
     delay(500);
-
-    switch (i)
-    {
-    case 0:
-      Serial.println("|Hey !");
-      break;
-    
-    case 1:
-      Serial.println("|Can");
-      break;
-
-    case 2:
-      Serial.println("|you");
-      break;
-
-    case 3:
-      Serial.println("|hear");
-      break;
-    
-    case 4:
-      Serial.println("|me ?");
-      break;
-    
-    default:
-      break;
-    }
   }
   
 
