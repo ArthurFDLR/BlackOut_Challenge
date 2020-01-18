@@ -21,6 +21,24 @@ class Comm(Qtw.QFrame):
             print(name + " : " + str(value))
             self.mess.setText(name + " : " + str(value))
 
+class map_GUI(Qtw.QFrame):
+    def __init__(self):
+        super().__init__()
+        self.setFrameShadow(Qtw.QFrame.Plain)
+        self.setFrameShape(Qtw.QFrame.StyledPanel)
+        self.myLayout = Qtw.QHBoxLayout(self)
+        self.lab = Qtw.QLabel("Last byte received : ")
+        self.myLayout.addWidget(self.lab)
+        self.mess = Qtw.QLabel("")
+        self.myLayout.addWidget(self.mess)
+
+    def update(self, x: dict):
+        for name, value in x.items():
+            deltaX = x["DeltaX"]
+            print(name + " : " + str(value))
+            self.mess.setText(name + " : " + str(value))
+
+
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
         super().__init__()
@@ -43,6 +61,8 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.commWidget)
         self.debugWidget=DebugMessage()
         self.mainLayout.addWidget(self.debugWidget)
+        self.mapWidget=map_GUI()
+        self.mainLayout.addWidget(self.mapWidget)
 
         self.sendButton = Qtw.QPushButton("Click click")
         self.mainLayout.addWidget(self.sendButton)
@@ -52,5 +72,7 @@ class MainWindow(Qtw.QWidget):
         self.parserThread.newData.connect(self.commWidget.update)
         self.parserThread.newDebug.connect(self.debugWidget.update)
         self.parserThread.newDebug.connect(print)
+        self.parserThread.newMovement.connect(self.mapWidget.update)
+
         
         self.parserThread.start()
