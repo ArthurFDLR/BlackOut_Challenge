@@ -41,32 +41,38 @@ class Parser(QThread):
         self.ser=serial.Serial()
         self.ser.port=port
         self.ser.baudrate=baudrate
-
+        
         self.state=State.DEBUG
         self.stop=False
         mainWindow.sendMessage.connect(self.sendMessage)
 
     def sendMessage(self, char : str):
         self.ser.write(char.encode('utf-8'))
-        #self.ser.write(bytes.fromhex("010203040200"))
         print("send")
     
-    def run(self):              # type data : '@name#value'
+    def readNamedValue(self):
+        if (self.ser.read()).decode() == '@':
+            floatStr = ""
+            nameStr = ""
+            nameChar = (self.ser.read()).decode()
+            while (nameChar != '#'):
+                nameStr += nameChar
+                nameChar = (self.ser.read()).decode()
+            for i in range(8): # read incomming float
+                floatStr += (self.ser.read()).decode()
+        return nameStr, self.decode_float(floatStr)
+
+    def run(self):              # type data : '*i@name1#value1@name2#value2...'
         self.connectPort()
         while not self.stop:
             if self.ser.inWaiting()>0:
                 x = (self.ser.read()).decode()
-                
-                if x == '@': # New data
-                    floatStr = ""
-                    nameStr = ""
-                    nameChar = (self.ser.read()).decode()
-                    while (nameChar != '#'):
-                        nameStr += nameChar
-                        nameChar = (self.ser.read()).decode()
-                    for i in range(8): # read incomming float
-                        floatStr += (self.ser.read()).decode()
-                    self.newData.emit({nameStr : self.decode_float(floatStr)})
+                if x == '*': # New values incomming
+                    namedValues = {}
+                    for i in range(int((self.ser.read()).decode())): #Get number of values comming
+                        name, value = self.readNamedValue()
+                        namedValues[name] = value
+                    self.newData.emit(namedValues)
                 
                 if x == '|':    # New message
                     message = ""
@@ -74,7 +80,6 @@ class Parser(QThread):
                     while messageChar != '\n':
                         message += messageChar
                         messageChar = (self.ser.read()).decode()
-                    print(message)
                     self.newDebug.emit(message)
 
     

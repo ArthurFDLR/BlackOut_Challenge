@@ -51,5 +51,6 @@ class MainWindow(Qtw.QWidget):
         self.parserThread=Parser(self)
         self.parserThread.newData.connect(self.commWidget.update)
         self.parserThread.newDebug.connect(self.debugWidget.update)
+        self.parserThread.newDebug.connect(print)
         
         self.parserThread.start()

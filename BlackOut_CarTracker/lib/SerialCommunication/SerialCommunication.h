@@ -35,8 +35,11 @@ public:
     //                                    used by sendDebugMessage()
     int Setup(HardwareSerial *telemetryPort = &Serial, HardwareSerial *debugPort = &Serial);
 
-    // GOAL / Send a value on data format (example : '@name#value') on telemetryPort
-    int sendData(String name, float value);
+    // GOAL / Send multiple value on data format (example : '*nbrValue@name1#value1@name2#value2...') on telemetryPort
+    // IN   / int nbrValue : Number of value to send, 1 to 9
+    //        String* Names : list of names
+    //        String* values : list of values
+    int sendData(int nbrValue, String* names, float* values);
 
     // GOAL / Send a message on data format (example : '|message\n') on debugPort if debugPortEnable
     //        Do not use | and \n
@@ -50,6 +53,9 @@ private:
     HardwareSerial *_telemetryPort;
     HardwareSerial *_debugPort;
     bool _debugPortEnable;
+
+    // GOAL / Send a value on data format (example : '@name#value') on telemetryPort
+    int sendNamedValue(String name, float value);
 
     void serialFloatPrint(float f);
 };

@@ -40,12 +40,23 @@ void SerialCommunication::serialFloatPrint(float f)
     }
 }
 
-int SerialCommunication::sendData(String Name, float Value)
+int SerialCommunication::sendNamedValue(String name, float value)
 {
     _telemetryPort->print('@');
-    _telemetryPort->print(Name);
+    _telemetryPort->print(name);
     _telemetryPort->print("#");
-    serialFloatPrint(Value);
+    serialFloatPrint(value);
+    return 0;
+}
+
+int SerialCommunication::sendData(int nbrValue, String* names, float* values)
+{
+    _telemetryPort->print('*');
+    _telemetryPort->print(nbrValue);
+    for(int i = 0; i<nbrValue ; i++)
+    {
+        sendNamedValue(names[i], values[i]);
+    }
     _telemetryPort->print('\n');
     return 0;
 }
