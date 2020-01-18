@@ -1,12 +1,17 @@
 #include <FreematicsPlus.h>
+#include <SerialCommunication.h>
 
 MPU9250_DMP imu;
-float acc[3], gyr[3], mag[3];
 ORIENTATION ori;
+SerialCommunication communicationPort;
+
+float acc[3], gyr[3], mag[3];
 
 void setup()
 {
   Serial.begin(115200);
+  communicationPort.Setup(&Serial, &Serial);
+
   /*
   Serial.println("MPU-9250 DMP Quaternion Test");
 
@@ -27,81 +32,16 @@ void setup()
   */
 }
 
-int calibration_MotionCal()
-{
-  if (imu.fifoAvailable())
-  {
-    if (imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS))
-    {
-    
-    Serial.print("Raw:");
-    Serial.print(imu.ax);
-    Serial.print(',');
-    Serial.print(imu.ay);
-    Serial.print(',');
-    Serial.print(imu.az);
-    Serial.print(',');
-    Serial.print(imu.gx);
-    Serial.print(',');
-    Serial.print(imu.gy);
-    Serial.print(',');
-    Serial.print(imu.gz);
-    Serial.print(',');
-    Serial.print(imu.mx);
-    Serial.print(',');
-    Serial.print(imu.my);
-    Serial.print(',');
-    Serial.print(imu.mz);
-    Serial.println();
-    return 0;
-      
-    }
-  }
-  return 1;
-}
-
-void serialFloatPrint(HardwareSerial SerialComm ,float f) {
-  byte * b = (byte *) &f;
-  //Serial.print("f:");
-  for(int i=0; i<4; i++) {
-    
-    byte b1 = (b[i] >> 4) & 0x0f;
-    byte b2 = (b[i] & 0x0f);
-    
-    char c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
-    char c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
-    
-    SerialComm.print(c1);
-    SerialComm.print(c2);
-  }
-}
-
-void sendData(String Name, float Value, HardwareSerial SerialComm)
-{
-    SerialComm.print('@');
-    SerialComm.print(Name);
-    SerialComm.print("#");
-    serialFloatPrint(SerialComm, Value);
-}
-
 void loop()
 {
-  for (int i=0 ; i < 10 ; i++)
+  for (int i = 0; i < 10; i++)
   {
-    
-    if (Serial.available() > 0)
-    {
-      if (char(Serial.read()) == '!')
-      {
-        Serial.print("|");
-        Serial.println(i);
-      }
-    }
+    if (communicationPort.updateReception() == Ping)
+      communicationPort.sendDebugMessage(String(10*i));
 
-    sendData("PIs", i*PI, Serial);
+    communicationPort.sendData("Hello", PI * i);
     delay(500);
   }
-  
 
   /*
   if (imu.read(acc, gyr, mag, 0, &ori)) {
