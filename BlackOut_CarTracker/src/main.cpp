@@ -1,63 +1,75 @@
+#define _MAIN_OBD_
+#ifdef _MAIN_OBD_
+
 #include <FreematicsPlus.h>
-#include <SerialCommunication.h>
 
-MPU9250_DMP imu;
-ORIENTATION ori;
-SerialCommunication communicationPort;
+#define PIN_LED 4
 
-float acc[3], gyr[3], mag[3];
+FreematicsESP32 sys;
+COBD obd;
+bool connected = false;
+unsigned long count = 0;
 
-void setup()
-{
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(PIN_LED, OUTPUT);
+  digitalWrite(PIN_LED, HIGH);
+  delay(1000);
+  digitalWrite(PIN_LED, LOW);
   Serial.begin(115200);
-  communicationPort.Setup(&Serial, &Serial);
 
-  /*
-  Serial.println("MPU-9250 DMP Quaternion Test");
-
-  if (!imu.begin(true, 10)) //Activate data fusion
-  {
-    Serial.println("Unable to communicate with MPU-9250");
-    while (1)
-      ;
-  }
-  Serial.println("MPU-9250 OK");
-
-  if (imu.setSensors(INV_XYZ_COMPASS | INV_XYZ_GYRO | INV_XYZ_ACCEL) != INV_SUCCESS) //250dps enough for a car
-  {
-    Serial.println("Unable to set all sensors");
-    while (1)
-      ;
-  }
-  */
+  // initializations
+  while (!sys.begin());
+  Serial.print("Firmware: V");
+  Serial.println(sys.version);
+  obd.begin(sys.link);
 }
 
-void loop()
-{
-  for (int i = 0; i < 10; i++)
-  {
-    if (communicationPort.updateReception() == Ping)
-      communicationPort.sendDebugMessage(String(10*i));
-
-    //communicationPort.sendData("Hello", PI * i);
-    float listVal[2];
-    listVal[0] = (float) i * PI;
-    listVal[1] = (float) i * PI * 2;
-    String listName[2] = {"dX", "dY"};
-
-    communicationPort.sendData(2,listName,listVal);
-    delay(500);
+void loop() {
+  digitalWrite(PIN_LED, HIGH);
+  // put your main code here, to run repeatedly:
+  if (!connected) {
+    digitalWrite(PIN_LED, HIGH);
+    Serial.print("Connecting to OBD...");
+    if (obd.init()) {
+      Serial.println("OK");
+      connected = true;
+    } else {
+      Serial.println();
+    }
+    digitalWrite(PIN_LED, LOW);
+    return;
   }
 
-  /*
-  if (imu.read(acc, gyr, mag, 0, &ori)) {
-    Serial.print("Accelerometer: X=");
-    Serial.print(acc[0]);
-    Serial.print("g Y=");
-    Serial.print(acc[1]);
-    Serial.print("g Z=");
-    Serial.print(acc[2]);
-    Serial.println("g");
+  int value;
+  Serial.print('[');
+  Serial.print(millis());
+  Serial.print("] #");
+  Serial.print(count++);
+  if (obd.readPID(PID_RPM, value)) {
+    Serial.print(" RPM:");
+    Serial.print(value);
   }
-  */
+  if (obd.readPID(PID_SPEED, value)) {
+    Serial.print(" SPEED:");
+    Serial.print(value);
+  }
+
+  Serial.print(" BATTERY:");
+  Serial.print(obd.getVoltage());
+  Serial.print('V');
+
+  Serial.print(" CPU TEMP:");
+  Serial.print(readChipTemperature());
+  Serial.println();
+  if (obd.errors > 2) {
+    Serial.println("OBD disconnected");
+    connected = false;
+    obd.reset();
+  }
+  digitalWrite(PIN_LED, LOW);
+
+  delay(100);
 }
+
+#endif

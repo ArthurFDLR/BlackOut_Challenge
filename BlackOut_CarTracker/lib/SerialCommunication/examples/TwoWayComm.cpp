@@ -22,7 +22,11 @@ void loop()
     if (communicationPort.updateReception() == Ping)
       communicationPort.sendDebugMessage(String(10*i));
 
-    communicationPort.sendData("Hello", PI * i);
+    float listVal[2];
+    listVal[0] = (float) i * PI;
+    listVal[1] = (float) i * PI * 2;
+    String listName[2] = {"dX", "dY"};
+
+    communicationPort.sendData(2,listName,listVal);
     delay(500);
   }
-}
