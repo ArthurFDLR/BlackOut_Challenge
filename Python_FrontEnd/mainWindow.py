@@ -1,8 +1,9 @@
 from PyQt5 import QtWidgets as Qtw
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QPixmap
 from PyQt5 import QtCore as Qt
 from parseSerial import Parser
 from parseSerial import MessageID
+import Goose_GUI as GUI
 
 
 class Comm(Qtw.QFrame):
@@ -21,22 +22,30 @@ class Comm(Qtw.QFrame):
             print(name + " : " + str(value))
             self.mess.setText(name + " : " + str(value))
 
-class map_GUI(Qtw.QFrame):
+class map_GUI(Qtw.QWidget):
     def __init__(self):
         super().__init__()
-        self.setFrameShadow(Qtw.QFrame.Plain)
-        self.setFrameShape(Qtw.QFrame.StyledPanel)
-        self.myLayout = Qtw.QHBoxLayout(self)
-        self.lab = Qtw.QLabel("Last byte received : ")
-        self.myLayout.addWidget(self.lab)
-        self.mess = Qtw.QLabel("")
-        self.myLayout.addWidget(self.mess)
+        self.delta_X = 0
+        self.delta_Y = 0
+        self.beacon = False
+
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle("GPS Mais sans S")
+        self.setGeometry(0, 0, 480, 640)
+        label = Qtw.QLabel(self)
+        self.beacon = GUI.beacon()
+        GUI.create_frame_map(self.delta_X, self.delta_Y, self.beacon)
+        pixmap = QPixmap('map.jpg')
+        label.setPixmap(pixmap)
+        self.resize(pixmap.width(), pixmap.height())
+        self.show()
 
     def update(self, x: dict):
         for name, value in x.items():
-            deltaX = x["DeltaX"]
-            print(name + " : " + str(value))
-            self.mess.setText(name + " : " + str(value))
+            self.delta_X = x["Delta_X"]
+            self.delta_Y = x["Delta_Y"]
 
 
 class DebugMessage(Qtw.QFrame):
