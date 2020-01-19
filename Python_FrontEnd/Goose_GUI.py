@@ -28,8 +28,7 @@ def get_roi(img, x_center, y_center, width_screen, height_screen):
 # Necessite :
 ########################################################
 
-def create_frame_map(delta_X, delta_Y, beacon):
-    # Coincidence axe voiture/axe carte
+def create_frame_map(X, Y, theta, beacon):
 
     # Facteur de mise à l'échelle (px/m)
     scale = 0.51
@@ -49,6 +48,8 @@ def create_frame_map(delta_X, delta_Y, beacon):
     #  Récupération des tailles (résolution) de l'image
     h_image, w_image, _ = image.shape
     #  Test du mode (Mode balise reconnue ou Mode Sans balise)
+    mat_rot = cv2.getRotationMatrix2D((h_image//2,w_image//2),theta,(h_image,w_image))
+    image_rot = cv2.warpAffine(image,mat_rot)
 
     if beacon:
         goose = cv2.imread("goose_beacon_on.png")  #  Balise reconnue
@@ -59,7 +60,7 @@ def create_frame_map(delta_X, delta_Y, beacon):
     #  Centre de l'écran selon l'axe y (différent de la position (X,Y)
     screen_center = Y_scaled - int(goose_pos * h_screen)
     #  Récupération de l'image de l'écran (Region Of Interest)
-    roi, success = get_roi(image, X_scaled, screen_center, w_screen, h_screen)
+    roi, success = get_roi(image_rot, X_scaled, screen_center, w_screen, h_screen)
 
     # Vérification qu'on ne soit pas au bord de la carte (Goose ne peut pas aller au-delà du monde connu)
     if success == 0:
