@@ -39,3 +39,6 @@ class PositionComputation(Qtw.QWidget):
 
         else :
             print("No new position data")
+
+    def posCalibrationReception(self, x : dict):
+        self.newPosition.emit(x)

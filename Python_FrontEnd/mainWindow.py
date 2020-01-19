@@ -22,7 +22,10 @@ class Comm(Qtw.QFrame):
             self.mess.setText(name + " : " + str(value))
 
 class initialisation_setting(Qtw.QWidget):
+    newPositionCalibration = Qt.pyqtSignal(dict)  # self.newPositionCalibration( { PosEnum.POS_X : X, PosEnum.POS_Y : Y, PosEnum.POS_THETA : Th} )
+
     def __init__(self):
+        
         super().__init__()
 
     def initUI(self):
@@ -35,6 +38,7 @@ class initialisation_setting(Qtw.QWidget):
         self.slider_x.set
         self.slider_y = Qtw.QSlider(Qt.Horizontal)
 
+'''
 class map_GUI(Qtw.QWidget):
     def __init__(self):
         super().__init__()
@@ -58,7 +62,7 @@ class map_GUI(Qtw.QWidget):
         self.resize(pixmap.width(), pixmap.height())
         self.show()
 
-
+'''
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
         super().__init__()
@@ -72,8 +76,8 @@ class DebugMessage(Qtw.QFrame):
         self.mess.setText(message)
 
 class MainWindow(Qtw.QWidget):
-     
-
+    
+    sendMessage = Qt.pyqtSignal(str)
     def __init__(self):
         super().__init__()
         self.mainLayout=Qtw.QVBoxLayout(self)
@@ -82,8 +86,8 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.commWidget)
         self.debugWidget=DebugMessage()
         self.mainLayout.addWidget(self.debugWidget)
-        self.mapWidget=map_GUI()
-        self.mainLayout.addWidget(self.mapWidget)
+        #self.mapWidget=map_GUI()
+        #self.mainLayout.addWidget(self.mapWidget)
 
         self.sendButton = Qtw.QPushButton("Click click")
         self.mainLayout.addWidget(self.sendButton)
@@ -96,11 +100,11 @@ class MainWindow(Qtw.QWidget):
         self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData, 
         self.parserThread.newDebug.connect(self.debugWidget.update)
         self.parserThread.newDebug.connect(print) # When parser emit message, print in console
-        self.parserThread.newMovement.connect(self.mapWidget.updatePosition)
+        #self.parserThread.newMovement.connect(self.mapWidget.updatePosition)
 
         self.parserThread.newData.connect(self.posCompution.dataReception)
 
-        self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
+        #self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
 
         
         self.parserThread.start()
