@@ -13,7 +13,7 @@ class PosEnum(Enum):
 
 class PositionComputation(Qtw.QWidget):
     newPosition = pyqtSignal(dict)
-
+ 
 
     def __init__(self,mainWindow):
         super().__init__()

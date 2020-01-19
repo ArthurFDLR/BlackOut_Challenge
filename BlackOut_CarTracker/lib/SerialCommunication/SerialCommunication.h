@@ -9,7 +9,7 @@
 #define SERIALCOMMUNICATION_H_
 
 #include <Arduino.h>
-#include <Print.h>
+//#include <Print.h>
 
 #define CHAR_PING_SIGNAL '!'
 #define CHAR_START_SIGNAL 'y'

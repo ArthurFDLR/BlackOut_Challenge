@@ -63,7 +63,7 @@ class DebugMessage(Qtw.QFrame):
         self.mess.setText(message)
 
 class MainWindow(Qtw.QWidget):
-    sendMessage=Qt.pyqtSignal(str)
+     
 
     def __init__(self):
         super().__init__()
