@@ -2,8 +2,7 @@ from PyQt5 import QtWidgets as Qtw
 from PyQt5.QtGui import QColor
 from PyQt5 import QtCore as Qt
 from parseSerial import Parser
-from parseSerial import MessageID
-
+from positionComputation import PositionComputation, PosEnum
 
 class Comm(Qtw.QFrame):
     def __init__(self):
@@ -18,7 +17,7 @@ class Comm(Qtw.QFrame):
 
     def update(self, x : dict):
         for name,value in x.items():
-            print(name + " : " + str(value))
+            #print(name + " : " + str(value))
             self.mess.setText(name + " : " + str(value))
 
 class map_GUI(Qtw.QFrame):
@@ -27,15 +26,23 @@ class map_GUI(Qtw.QFrame):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
         self.myLayout = Qtw.QHBoxLayout(self)
-        self.lab = Qtw.QLabel("Last byte received : ")
+        self.lab = Qtw.QLabel("Map Widget")
         self.myLayout.addWidget(self.lab)
         self.mess = Qtw.QLabel("")
         self.myLayout.addWidget(self.mess)
 
+        self.posX = 0.0
+
+    def updatePosition(self, pos : dict):
+        self.posX = dict[PosEnum.POS_X]
+
+        
+        print("holla")
+
     def update(self, x: dict):
         for name, value in x.items():
             deltaX = x["DeltaX"]
-            print(name + " : " + str(value))
+            #print(name + " : " + str(value))
             self.mess.setText(name + " : " + str(value))
 
 
@@ -53,6 +60,7 @@ class DebugMessage(Qtw.QFrame):
 
 class MainWindow(Qtw.QWidget):
     sendMessage=Qt.pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.mainLayout=Qtw.QVBoxLayout(self)
@@ -68,11 +76,18 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.sendButton)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
+        self.posCompution = PositionComputation(self)
+
         self.parserThread=Parser(self)
-        self.parserThread.newData.connect(self.commWidget.update)
+        self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
+        self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData, 
         self.parserThread.newDebug.connect(self.debugWidget.update)
-        self.parserThread.newDebug.connect(print)
-        self.parserThread.newMovement.connect(self.mapWidget.update)
+        self.parserThread.newDebug.connect(print) # When parser emit message, print in console
+        self.parserThread.newMovement.connect(self.mapWidget.updatePosition)
+
+        self.parserThread.newData.connect(self.posCompution.dataReception
+
+        self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
 
         
         self.parserThread.start()

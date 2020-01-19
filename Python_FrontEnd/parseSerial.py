@@ -1,33 +1,13 @@
 import serial
 from PyQt5.QtCore import QObject,pyqtSignal,QThread
-from enum import Enum
 import time
 from struct import unpack
 from binascii import unhexlify
 
-class MessageID(Enum):
-    Empty=0
-    Stop=1
-    Tirette=2
-    PID_tweak_M=3
-    add_forward_M=4
-    add_backward_M=5
-    add_spin_M=6
-
-class State(Enum):
-    DEBUG=1
-    NAME=2
-    VALUE=3
-    INFO=4
-
 class Parser(QThread):
-    newDebug=pyqtSignal(str)
+    newDebug = pyqtSignal(str)
     newData = pyqtSignal(dict)
     newMovement = pyqtSignal(dict)  #  {"DeltaX" : deltaX, "DeltaY" : deltaY}
-
-    def decode_float(self,s):
-        return unpack('<f', unhexlify(s))[0]
-    
 
     def __init__(self,mainWindow):
         super().__init__()
@@ -43,9 +23,10 @@ class Parser(QThread):
         self.ser.port=port
         self.ser.baudrate=baudrate
         
-        self.state=State.DEBUG
         self.stop=False
-        mainWindow.sendMessage.connect(self.sendMessage)
+    
+    def decode_float(self,s):
+        return unpack('<f', unhexlify(s))[0]
 
     def sendMessage(self, char : str):
         self.ser.write(char.encode('utf-8'))
