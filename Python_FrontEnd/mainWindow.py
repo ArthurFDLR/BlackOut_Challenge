@@ -21,33 +21,42 @@ class Comm(Qtw.QFrame):
             #print(name + " : " + str(value))
             self.mess.setText(name + " : " + str(value))
 
+class initialisation_setting(Qtw.QWidget):
+    def __init__(self):
+        super().__init__()
+
+    def initUI(self):
+        self.setFrameShadow(Qtw.QFrame.Plain)
+        self.setFrameShape(Qtw.QFrame.StyledPanel)
+        self.myLayout = Qtw.QHBoxLayout(self)
+        self.label = Qtw.QLabel("Settings")
+        self.myLayout.addWidget(self.label)
+        self.slider_x = Qtw.QSlider(Qt.Horizontal)
+        self.slider_x.set
+        self.slider_y = Qtw.QSlider(Qt.Horizontal)
+
 class map_GUI(Qtw.QWidget):
     def __init__(self):
         super().__init__()
-        self.delta_X = 0
-        self.delta_Y = 0
         self.beacon = False
+        self.initUI()
 
     def updatePosition(self, pos : dict):
-        self.posX = dict[PosEnum.POS_X]
-        print("holla")
+        self.posX = pos[PosEnum.POS_X]
+        self.posY = pos[PosEnum.POS_y]
+        self.theta = pos[PosEnum.POS_THETA]
 
     def initUI(self):
-        self.setWindowTitle("GPS Mais sans S")
-        self.setGeometry(0, 0, 480, 640)
+        self.setFrameShadow(Qtw.QFrame.Plain)
+        self.setFrameShape(Qtw.QFrame.StyledPanel)
+        self.myLayout = Qtw.QHBoxLayout(self)
         label = Qtw.QLabel(self)
         self.beacon = GUI.beacon()
-        GUI.create_frame_map(self.delta_X, self.delta_Y, self.beacon)
+        GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
         pixmap = QPixmap('map.jpg')
         label.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
         self.show()
-
-    def update(self, x: dict):
-        for name, value in x.items():
-            deltaX = x["DeltaX"]
-            #print(name + " : " + str(value))
-            self.mess.setText(name + " : " + str(value))
 
 
 class DebugMessage(Qtw.QFrame):
