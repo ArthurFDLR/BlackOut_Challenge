@@ -98,7 +98,7 @@ class MainWindow(Qtw.QWidget):
         self.parserThread.newDebug.connect(print) # When parser emit message, print in console
         self.parserThread.newMovement.connect(self.mapWidget.updatePosition)
 
-        self.parserThread.newData.connect(self.posCompution.dataReception
+        self.parserThread.newData.connect(self.posCompution.dataReception)
 
         self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
 
