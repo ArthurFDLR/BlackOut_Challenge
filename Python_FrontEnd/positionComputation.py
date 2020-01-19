@@ -5,7 +5,7 @@ from enum import Enum
 
 class PosEnum(Enum):
     POS_X = 1
-    POS_y = 2
+    POS_Y = 2
     POS_THETA = 3
     DELTA_X = 4
     DELTA_Y = 5
