@@ -4,6 +4,8 @@ import time
 from struct import unpack
 from binascii import unhexlify
 
+from ctypes import *
+
 class Parser(QThread):
     newDebug = pyqtSignal(str)
     newData = pyqtSignal(dict)
@@ -25,8 +27,13 @@ class Parser(QThread):
         
         self.stop=False
     
-    def decode_float(self,s):
-        return unpack('<f', unhexlify(s))[0]
+    def decode_float(self,s):   #return unpack('<f', unhexlify(s))[0]
+        s = s[6:8] + s[4:6] + s[2:4] + s[0:2] # reverse the byte order
+        i = int(s, 16)                   # convert from hex to a Python int
+        cp = pointer(c_int(i))           # make this into a c integer
+        fp = cast(cp, POINTER(c_float))  # cast the int pointer to a float pointer
+        return fp.contents.value         # dereference the pointer, get the float
+        
 
     def sendMessage(self, char : str):
         self.ser.write(char.encode('utf-8'))

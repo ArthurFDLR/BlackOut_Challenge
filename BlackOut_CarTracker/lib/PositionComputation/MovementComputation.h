@@ -26,6 +26,8 @@ public:
 
     float getYaw();
 
+    void sendRotationMovement(float dTh = 0.087266, float dX = 1.0);
+    
 private:
     double _rotAngle1 = 0.0;
     double _rotAngle2 = 0.0;

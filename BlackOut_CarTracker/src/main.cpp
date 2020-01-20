@@ -11,31 +11,36 @@ MovementComputation *moveComputation_ptr;
 
 float acc[3], gyr[3], mag[3];
 int i = 0;
-unsigned long timeLast = 0;
+unsigned long timeLast1, timeLast2;
 
 void setup()
 {
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
-  timeLast = millis();
-
+  timeLast1 = millis();
+  timeLast2 = millis();
   moveComputation_ptr = new MovementComputation(&communicationPort);
 }
 
 void loop()
 {
-  if (millis() - timeLast > 100)
+  if (millis() - timeLast1 > 100)
   {
     i++;
-    timeLast = millis();
+    timeLast1 = millis();
 
     if (communicationPort.updateReception() == Ping)
       communicationPort.sendDebugMessage(String(10 * i));
     
-    String listName[] = {"Yaw"};
+    // Send Yaw
+    String listName[] = {"Y"};
     float listVal[] = {moveComputation_ptr->getYaw()};
-
+    timeLast1 = millis();
+    communicationPort.sendDebugMessage(String(moveComputation_ptr->getYaw()));
     communicationPort.sendData(1, listName, listVal);
+
+    // Simulate movement
+    moveComputation_ptr->sendRotationMovement();
 
     /*
     float listVal[3];
@@ -61,3 +66,41 @@ if (imu.read(acc, gyr, mag, 0, &ori)) {
 */
 
 #endif
+/*
+#include <FreematicsPlus.h>
+#include <SerialCommunication.h>
+
+MPU9250_DMP imu;
+
+SerialCommunication communicationPort;
+
+void setup()
+{
+  delay(1000);
+  Serial.begin(115200);
+
+  if (!imu.begin(true, 10))
+  {
+
+    for (;;)
+      ;
+  }
+
+}
+float acc[3];
+ORIENTATION ori;
+
+void loop()
+{
+
+  if (imu.read(acc, 0, 0, 0, &ori))
+  {
+    String listName[] = {"Yaw"};
+    float listVal[] = {imu.yaw};
+    communicationPort.sendData(1, listName, listVal);
+  }
+
+  delay(50);
+  return;
+}
+*/

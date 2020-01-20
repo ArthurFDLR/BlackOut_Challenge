@@ -38,6 +38,13 @@ float MovementComputation::getYaw()
     return ori.yaw;
 }
 
+void MovementComputation::sendRotationMovement(float dTh, float dX)
+{
+    String listName[] = {"dX","dTh"};
+    float listVal[] = {dX,dTh};
+    _comPort_ptr->sendData(2, listName, listVal);
+}
+
 int MovementComputation::orientationCalibration()
 {
     return 1;
