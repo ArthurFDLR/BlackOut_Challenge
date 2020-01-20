@@ -37,7 +37,7 @@ class Parser(QThread):
 
     def sendMessage(self, char : str):
         self.ser.write(char.encode('utf-8'))
-        print("send")
+        print( "'" + char + "'" + "sended")
     
     def readNamedValue(self):
         if (self.ser.read()).decode() == '@':

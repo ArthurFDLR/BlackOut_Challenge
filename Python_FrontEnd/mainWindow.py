@@ -23,10 +23,11 @@ class Comm(Qtw.QFrame):
 
 class initialisation_settings(Qtw.QFrame):
     newPositionCalibration = Qt.pyqtSignal(dict)
+    newCalibrationState = Qt.pyqtSignal(bool)
 
     def __init__(self, mainWindow):
         super().__init__()
-        self.parent_window = mainWindow
+        #self.parent_window = mainWindow
         self.initUI()
 
     def initUI(self):
@@ -69,15 +70,15 @@ class initialisation_settings(Qtw.QFrame):
 
     def statebutton(self):
         if self.check_init.isChecked():
-            self.check_init.clicked.connect(lambda : self.parent_window.sendMessage.emit("y"))
+            self.newCalibrationState.emit(True)
         else:
-            self.check_init.clicked.connect(lambda : self.parent_window.sendMessage.emit("n"))
+            self.newCalibrationState.emit(False)
     
     def sendNewPosition(self):
-        self.currentPosition[PosEnum.POS_X] = self.slider_x.Value()
-        self.currentPosition[PosEnum.POS_Y] = self.slider_y.Value()
-        self.currentPosition[PosEnum.POS_THETA] = self.dial_theta.Value()
-
+        self.currentPosition[PosEnum.POS_X] = self.slider_x.value()
+        self.currentPosition[PosEnum.POS_Y] = self.slider_y.value()
+        self.currentPosition[PosEnum.POS_THETA] = self.dial_theta.value()
+        print("hey")
         self.newPositionCalibration.emit(self.currentPosition)
 
 
@@ -126,13 +127,21 @@ class map_GUI(Qtw.QFrame):
 
     def updatePosition(self, pos : dict):
         self.posX = pos[PosEnum.POS_X]
-        self.posY = pos[PosEnum.POS_y]
+        self.posY = pos[PosEnum.POS_Y]
         self.theta = pos[PosEnum.POS_THETA]
+        print(pos)
+        self.debugLabel.setText( str(self.posX) + " ; " + str(self.posY) + " ; " + str(self.theta))
 
     def initUI(self):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
         self.myLayout = Qtw.QHBoxLayout(self)
+        
+        self.debugLabel=Qtw.QLabel("")
+        self.myLayout.addWidget(self.debugLabel)
+        
+        
+        '''         LOUIS T TRO FOR <3
         label = Qtw.QLabel(self)
         self.beacon = GUI.beacon()
         GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
@@ -140,6 +149,7 @@ class map_GUI(Qtw.QFrame):
         label.setPixmap(pixmap)
         self.resize(pixmap.width(), pixmap.height())
         self.show()
+        '''
 
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
@@ -162,7 +172,7 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout=Qtw.QVBoxLayout(self)
         self.setLayout(self.mainLayout)
         self.posCompution = PositionComputation(self)
-        self.parserThread=Parser(self)
+        
 
         ## WIDGETS ##
         self.commWidget=Comm()
@@ -183,6 +193,8 @@ class MainWindow(Qtw.QWidget):
         
         
         ## COMMUNICATION ##
+        self.parserThread=Parser(self)
+
         self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
         self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData    ## TMP
         self.parserThread.newData.connect(self.posCompution.dataReception) # When parser emit newData, posComputation catch en translate to newPos
@@ -193,5 +205,6 @@ class MainWindow(Qtw.QWidget):
         self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
         
         self.settings.newPositionCalibration.connect(self.posCompution.posCalibrationReception)
-        
-        # self.parserThread.start()
+        self.settings.newCalibrationState.connect(lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n")) # Send 'y' if check box true, else send 'n'
+
+        self.parserThread.start()

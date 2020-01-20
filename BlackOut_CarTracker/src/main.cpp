@@ -12,6 +12,7 @@ MovementComputation *moveComputation_ptr;
 float acc[3], gyr[3], mag[3];
 int i = 0;
 unsigned long timeLast1, timeLast2;
+bool communicationState = false;
 
 void setup()
 {
@@ -29,9 +30,27 @@ void loop()
     i++;
     timeLast1 = millis();
 
-    if (communicationPort.updateReception() == Ping)
-      communicationPort.sendDebugMessage(String(10 * i));
-    
+    // Data reception
+    switch (communicationPort.updateReception())
+    {
+    case Ping:
+      communicationPort.sendDebugMessage("Pong");
+      break;
+
+    case Start:
+      communicationState = true;
+      communicationPort.sendDebugMessage("Com started");
+      break;
+
+    case Stop:
+      communicationState = false;
+      communicationPort.sendDebugMessage("Com stopped");
+      break;
+
+    default:
+      break;
+    }
+
     // Send Yaw
     String listName[] = {"Y"};
     float listVal[] = {moveComputation_ptr->getYaw()};
@@ -40,7 +59,10 @@ void loop()
     communicationPort.sendData(1, listName, listVal);
 
     // Simulate movement
-    moveComputation_ptr->sendRotationMovement();
+    if (communicationState)
+    {
+      moveComputation_ptr->sendRotationMovement();
+    }
 
     /*
     float listVal[3];

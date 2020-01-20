@@ -44,7 +44,7 @@ class PositionComputation(Qtw.QWidget):
     def posCalibrationReception(self, x : dict):
         self.newPosition.emit(x)
     
-    def computePosition():
+    def computePosition(self):
         
         ## POSITION COMPUTATION ##
         self.dictPosOut[PosEnum.POS_X] = 0.0; # += cos(th) * self.dictDeltaIn[PosEnum.DELTA_X];
