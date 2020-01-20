@@ -3,13 +3,14 @@
 
 #include <FreematicsPlus.h>
 #include <SerialCommunication.h>
+#include <MovementComputation.h>
 
-MPU9250_DMP imu;
 ORIENTATION ori;
 SerialCommunication communicationPort;
+MovementComputation *moveComputation_ptr;
 
 float acc[3], gyr[3], mag[3];
-int i=0;
+int i = 0;
 unsigned long timeLast = 0;
 
 void setup()
@@ -17,46 +18,33 @@ void setup()
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
   timeLast = millis();
-  //setupIMU();
+
+  moveComputation_ptr = new MovementComputation(&communicationPort);
 }
 
 void loop()
 {
-  if (millis() - timeLast > 500)
+  if (millis() - timeLast > 100)
   {
-    i ++;
+    i++;
     timeLast = millis();
 
     if (communicationPort.updateReception() == Ping)
-      communicationPort.sendDebugMessage(String(10*i));
+      communicationPort.sendDebugMessage(String(10 * i));
+    
+    String listName[] = {"Yaw"};
+    float listVal[] = {moveComputation_ptr->getYaw()};
 
+    communicationPort.sendData(1, listName, listVal);
+
+    /*
     float listVal[3];
-    listVal[0] = (float) i * PI;
-    listVal[1] = (float) i * PI * 2;
-    listVal[2] = (float) i * PI * 3;
+    listVal[0] = (float)i * PI;
+    listVal[1] = (float)i * PI * 2;
+    listVal[2] = (float)i * PI * 3;
     String listName[3] = {"dX", "dY", "dTh"};
-    communicationPort.sendData(3,listName,listVal);
-  }
-}
-
-
-
-void setupIMU(){
-  communicationPort.sendDebugMessage("MPU-9250 DMP Quaternion Test");
-
-  if (!imu.begin(true, 10)) //Activate data fusion
-  {
-    communicationPort.sendDebugMessage("Unable to communicate with MPU-9250");
-    while (1)
-      ;
-  }
-  communicationPort.sendDebugMessage("MPU-9250 OK");
-
-  if (imu.setSensors(INV_XYZ_COMPASS | INV_XYZ_GYRO | INV_XYZ_ACCEL) != INV_SUCCESS) //250dps enough for a car
-  {
-    communicationPort.sendDebugMessage("Unable to set all sensors");
-    while (1)
-      ;
+    communicationPort.sendData(3, listName, listVal);
+    */
   }
 }
 
