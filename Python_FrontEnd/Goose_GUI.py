@@ -48,7 +48,7 @@ def create_frame_map(X, Y, theta, beacon):
     #  Récupération des tailles (résolution) de l'image
     h_image, w_image, _ = image.shape
     #  Test du mode (Mode balise reconnue ou Mode Sans balise)
-    mat_rot = cv2.getRotationMatrix2D((h_image//2,w_image//2),theta,(h_image,w_image))
+    mat_rot = cv2.getRotationMatrix2D((h_image//2,w_image//2),theta,1) #(h_image,w_image)
     image_rot = cv2.warpAffine(image,mat_rot)
 
     if beacon:

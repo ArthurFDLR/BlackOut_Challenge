@@ -22,7 +22,7 @@ class Comm(Qtw.QFrame):
             self.mess.setText(name + " : " + str(value))
 
 class initialisation_settings(Qtw.QFrame):
-    newPositionCalibration = Qt.pyqtSignal(dict)  # self.newPositionCalibration( { PosEnum.POS_X : X, PosEnum.POS_Y : Y, PosEnum.POS_THETA : Th} )
+    newPositionCalibration = Qt.pyqtSignal(dict)
 
     def __init__(self, mainWindow):
         super().__init__()
@@ -55,9 +55,16 @@ class initialisation_settings(Qtw.QFrame):
         self.check_init = MySwitch()
         self.myLayout.addWidget(self.check_init, 1, 3)
 
-        self.slider_x.valueChanged.connect(self.valuechanged)
-        self.slider_y.valueChanged.connect(self.valuechanged)
-        self.dial_theta.valueChanged.connect(self.valuechanged)
+        self.currentPosition = {
+            PosEnum.POS_X : 0.0,
+            PosEnum.POS_Y : 0.0,
+            PosEnum.POS_THETA : 0.0
+        }
+
+        self.slider_x.valueChanged.connect(self.sendNewPosition)
+        self.slider_y.valueChanged.connect(self.sendNewPosition)
+        self.dial_theta.valueChanged.connect(self.sendNewPosition)
+
         self.check_init.clicked.connect(self.statebutton)
 
     def statebutton(self):
@@ -65,9 +72,14 @@ class initialisation_settings(Qtw.QFrame):
             self.check_init.clicked.connect(lambda : self.parent_window.sendMessage.emit("y"))
         else:
             self.check_init.clicked.connect(lambda : self.parent_window.sendMessage.emit("n"))
+    
+    def sendNewPosition(self):
+        self.currentPosition[PosEnum.POS_X] = self.slider_x.Value()
+        self.currentPosition[PosEnum.POS_Y] = self.slider_y.Value()
+        self.currentPosition[PosEnum.POS_THETA] = self.dial_theta.Value()
 
-    def valuechanged(self):
-            return self.slider_x.Value(), self.slider_y.Value(), self.dial_theta.Value()
+        self.newPositionCalibration.emit(self.currentPosition)
+
 
 class MySwitch(Qtw.QPushButton):
     def __init__(self, parent = None):
@@ -102,9 +114,13 @@ class MySwitch(Qtw.QPushButton):
         painter.drawRoundedRect(sw_rect, radius, radius)
         painter.drawText(sw_rect, Qt.Qt.AlignCenter, label)
 
-class map_GUI(Qtw.QWidget):
+class map_GUI(Qtw.QFrame):
     def __init__(self):
         super().__init__()
+        self.posX = 0.0
+        self.posY = 0.0
+        self.theta = 0.0
+
         self.beacon = False
         self.initUI()
 
@@ -141,33 +157,41 @@ class MainWindow(Qtw.QWidget):
     
     sendMessage = Qt.pyqtSignal(str)
     def __init__(self):
+        ## SETUP ##
         super().__init__()
         self.mainLayout=Qtw.QVBoxLayout(self)
         self.setLayout(self.mainLayout)
+        self.posCompution = PositionComputation(self)
+        self.parserThread=Parser(self)
+
+        ## WIDGETS ##
         self.commWidget=Comm()
         self.mainLayout.addWidget(self.commWidget)
+
         self.debugWidget=DebugMessage()
         self.mainLayout.addWidget(self.debugWidget)
+
         self.settings=initialisation_settings(self)
         self.mainLayout.addWidget(self.settings)
+
         self.sendButton = Qtw.QPushButton("Click click")
         self.mainLayout.addWidget(self.sendButton)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
+
         self.mapWidget = map_GUI()
         self.mainLayout.addWidget(self.mapWidget)
+        
+        
+        ## COMMUNICATION ##
+        self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
+        self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData    ## TMP
+        self.parserThread.newData.connect(self.posCompution.dataReception) # When parser emit newData, posComputation catch en translate to newPos
 
-        # self.posCompution = PositionComputation(self)
-        #
-        # self.parserThread=Parser(self)
-        # self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
-        # self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData,
-        # self.parserThread.newDebug.connect(self.debugWidget.update)
-        # self.parserThread.newDebug.connect(print) # When parser emit message, print in console
-        # #self.parserThread.newMovement.connect(self.mapWidget.updatePosition)
-        #
-        # self.parserThread.newData.connect(self.posCompution.dataReception)
-        #
-        # #self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
-        #
-        #
-        # # self.parserThread.start()
+        self.parserThread.newDebug.connect(self.debugWidget.update) # Print to screen when debug message comming in
+        self.parserThread.newDebug.connect(print) # Print to console when debug message comming in
+        
+        self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
+        
+        self.settings.newPositionCalibration.connect(self.posCompution.posCalibrationReception)
+        
+        # self.parserThread.start()

@@ -24,21 +24,31 @@ class PositionComputation(Qtw.QWidget):
             PosEnum.DELTA_THETA : 0.0
         }
 
-        self.dictPosIn = {
+        self.dictPosOut = {
             PosEnum.POS_X : 0.0,
             PosEnum.POS_Y : 0.0,
             PosEnum.POS_THETA : 0.0
         }
 
     def dataReception(self, x : dict): #Begin new position calculation if dX, dY, dTh received
-        if (('dX' in x) and ('dY' in x) and ('dTh' in x)) : # whole new set of data incomming
+        if (('dX' in x) and ('dTh' in x)) : # whole new set of data incomming
             self.dictDeltaIn[PosEnum.DELTA_X] = x['dX']
-            self.dictDeltaIn[PosEnum.DELTA_Y] = x['dY']
             self.dictDeltaIn[PosEnum.DELTA_THETA] = x['dTh']
             print("new data")
+            
+            self.computePosition()
 
         else :
             print("No new position data")
 
     def posCalibrationReception(self, x : dict):
         self.newPosition.emit(x)
+    
+    def computePosition():
+        
+        ## POSITION COMPUTATION ##
+        self.dictPosOut[PosEnum.POS_X] = 0.0; # += cos(th) * self.dictDeltaIn[PosEnum.DELTA_X];
+        self.dictPosOut[PosEnum.POS_Y] = 0.0; # += sin(th) * self.dictDeltaIn[PosEnum.DELTA_Y];
+        self.dictPosOut[PosEnum.POS_THETA] = 0.0; # += self.dictDeltaIn[PosEnum.DELTA_THETA];
+
+        self.newPosition.emit(self.dictPosOut)

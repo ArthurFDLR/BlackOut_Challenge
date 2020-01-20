@@ -9,7 +9,7 @@ from ctypes import *
 class Parser(QThread):
     newDebug = pyqtSignal(str)
     newData = pyqtSignal(dict)
-    newMovement = pyqtSignal(dict)  #  {"DeltaX" : deltaX, "DeltaY" : deltaY}
+    #newMovement = pyqtSignal(dict)  #  {"DeltaX" : deltaX, "DeltaY" : deltaY}
 
     def __init__(self,mainWindow):
         super().__init__()
