@@ -7,11 +7,14 @@
 #define MOVEMENT_COMPUTATION_H_
 
 #include <Arduino.h>
+#include <FreematicsPlus.h>
+#include <SerialCommunication.h>
+
 
 class MovementComputation
 {
 public:
-    MovementComputation();
+    MovementComputation(SerialCommunication* comPort);
 
     // GOAL / Calculate rotAngle1 and rotAngle2. Do not move the accelerometer for 5 secondes.
     int orientationCalibration();
@@ -21,11 +24,14 @@ public:
 
     void rotationMovementComputation();
 
+    float getYaw();
 
 private:
     double _rotAngle1 = 0.0;
     double _rotAngle2 = 0.0;
     unsigned long _deltaT = 0;
+    MPU9250_DMP _imu;
+    SerialCommunication* _comPort_ptr;
 };
 
 
