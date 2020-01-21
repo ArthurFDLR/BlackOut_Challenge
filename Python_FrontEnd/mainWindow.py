@@ -2,8 +2,9 @@ from PyQt5 import QtWidgets as Qtw
 from PyQt5.QtGui import QColor, QPixmap, QPainter, QPen, QBrush
 from PyQt5 import QtCore as Qt
 from parseSerial import Parser
-import Goose_GUI as GUI
 from positionComputation import PositionComputation, PosEnum
+
+#import Goose_GUI as GUI
 
 class Comm(Qtw.QFrame):
     def __init__(self):
@@ -169,42 +170,45 @@ class MainWindow(Qtw.QWidget):
     def __init__(self):
         ## SETUP ##
         super().__init__()
-        self.mainLayout=Qtw.QVBoxLayout(self)
+        self.mainLayout=Qtw.QGridLayout(self)
         self.setLayout(self.mainLayout)
         self.posCompution = PositionComputation(self)
         
 
         ## WIDGETS ##
         self.commWidget=Comm()
-        self.mainLayout.addWidget(self.commWidget)
+        self.mainLayout.addWidget(self.commWidget, 1, 1)
 
         self.debugWidget=DebugMessage()
-        self.mainLayout.addWidget(self.debugWidget)
+        self.mainLayout.addWidget(self.debugWidget, 2, 1)
 
         self.settings=initialisation_settings(self)
-        self.mainLayout.addWidget(self.settings)
+        self.mainLayout.addWidget(self.settings, 3, 1)
 
         self.sendButton = Qtw.QPushButton("Click click")
-        self.mainLayout.addWidget(self.sendButton)
+        self.mainLayout.addWidget(self.sendButton, 4, 1)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
         self.mapWidget = map_GUI()
-        self.mainLayout.addWidget(self.mapWidget)
+        self.mainLayout.addWidget(self.mapWidget, 1, 2, 4, 1)
         
         
         ## COMMUNICATION ##
-        self.parserThread=Parser(self)
 
-        self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
-        self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData    ## TMP
-        self.parserThread.newData.connect(self.posCompution.dataReception) # When parser emit newData, posComputation catch en translate to newPos
-
-        self.parserThread.newDebug.connect(self.debugWidget.update) # Print to screen when debug message comming in
-        self.parserThread.newDebug.connect(print) # Print to console when debug message comming in
-        
         self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
-        
-        self.settings.newPositionCalibration.connect(self.posCompution.posCalibrationReception)
-        self.settings.newCalibrationState.connect(lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n")) # Send 'y' if check box true, else send 'n'
 
-        self.parserThread.start()
+        self.settings.newPositionCalibration.connect(self.posCompution.posCalibrationReception)
+        self.settings.newCalibrationState.connect(
+            lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n"))  # Send 'y' if check box true, else send 'n'
+
+        if (False): #True if Com port connexion established
+            self.parserThread=Parser(self)
+
+            self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
+            self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData    ## TMP
+            self.parserThread.newData.connect(self.posCompution.dataReception) # When parser emit newData, posComputation catch en translate to newPos
+
+            self.parserThread.newDebug.connect(self.debugWidget.update) # Print to screen when debug message comming in
+            self.parserThread.newDebug.connect(print) # Print to console when debug message comming in
+
+            self.parserThread.start()
