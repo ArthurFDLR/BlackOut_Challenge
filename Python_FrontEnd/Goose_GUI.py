@@ -13,7 +13,7 @@ def get_roi(img, x_center, y_center, width_screen, height_screen):
     h_s = height_screen
     global w_image
     global h_image
-    if w_image - w_s > x_center > w_s and h_image - h_s > y_center > h_s:
+    if w_image - w_s//2 > x_center > w_s//2 and h_image - h_s//2 > y_center > h_s//2:
         return img[y_center - h_s // 2: y_center + h_s // 2, x_center - w_s // 2: x_center + w_s // 2], 1
     else:
         return 0, 0
@@ -36,21 +36,23 @@ def create_frame_map(X, Y, theta, beacon):
     X_scaled = X * scale
     Y_scaled = Y * scale
     #  Taille de l'image dans l'écran du GPS
-    w_screen = 640
-    h_screen = 480
+    w_screen = 240
+    h_screen = 180
     #  Taille de l'image (carré) de la goose
-    w_g = 100
+    w_g = 10
     #  Position par rapport à l'axe Y de la goose
     goose_pos = 0.5
     #  Lecture de la carte d'arrière-plan (Ici carte allant du milieu de Jaunay-Clan
     #  au milieu de la zone commerciale et de l'autoroute à chasseneuil)
     image = cv2.imread("map_chassou_ENSMA.jpg")
     #  Récupération des tailles (résolution) de l'image
+    global h_image
+    global w_image
     h_image, w_image, _ = image.shape
     #  Test du mode (Mode balise reconnue ou Mode Sans balise)
     mat_rot = cv2.getRotationMatrix2D((h_image//2,w_image//2),theta,1) #(h_image,w_image)
-    image_rot = cv2.warpAffine(image,mat_rot)
-
+    image_rot = cv2.warpAffine(image,mat_rot, (h_image,w_image))
+    cv2.imshow('res_rot',image_rot)
     if beacon:
         goose = cv2.imread("goose_beacon_on.png")  #  Balise reconnue
     else:
@@ -58,13 +60,14 @@ def create_frame_map(X, Y, theta, beacon):
     #  Redimensionner la goose à la taille voulue
     goose = cv2.resize(goose, (w_g, w_g))
     #  Centre de l'écran selon l'axe y (différent de la position (X,Y)
-    screen_center = Y_scaled - int(goose_pos * h_screen)
+    screen_center = int(Y_scaled) - int(goose_pos * h_screen)
     #  Récupération de l'image de l'écran (Region Of Interest)
-    roi, success = get_roi(image_rot, X_scaled, screen_center, w_screen, h_screen)
+    roi, success = get_roi(image_rot, int(X_scaled), screen_center, w_screen, h_screen)
 
     # Vérification qu'on ne soit pas au bord de la carte (Goose ne peut pas aller au-delà du monde connu)
     if success == 0:
         print("Limite de la carte atteinte")  #  Limite atteinte
+
     else:  #  Limite non atteinte
         #  Redéfinition de la position de la goose selon l'axe y sur l'écran
         pos_goose_Y = h_screen // 2 + int(goose_pos * h_screen)
@@ -96,3 +99,19 @@ def create_frame_map(X, Y, theta, beacon):
             cv2.circle(roi, (h_screen//2, pos_goose_Y), 2*w_g//3 + w_g//2, (170, 255, 0), 1)
 
         cv2.imwrite('map.jpg', roi)
+        cv2.imshow('res', roi)
+
+delta_X = 1
+delta_Y = 1
+delta_theta = 0.18
+a = 1700
+X, Y, theta = a, a, 0
+while True :
+    X += delta_X
+    Y +=delta_Y
+    theta += delta_theta
+    create_frame_map(X,Y,theta,beacon)
+
+    keypress = cv2.waitKey(1) & 0xFF
+    if keypress == ord('q'):
+        break
