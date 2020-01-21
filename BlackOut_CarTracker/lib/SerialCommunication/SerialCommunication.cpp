@@ -72,6 +72,17 @@ int SerialCommunication::sendDebugMessage(const String &message)
     return 1;
 }
 
+void SerialCommunication::print(const String &message)
+{
+    _debugPort->print(message);
+}
+
+void SerialCommunication::print(float nbr)
+{
+    _debugPort->print(nbr);
+}
+
+
 signalReception SerialCommunication::updateReception()
 {
     if (_telemetryPort->available() > 0)
@@ -89,6 +100,10 @@ signalReception SerialCommunication::updateReception()
         case CHAR_START_SIGNAL:
             return Start;
             break;
+        
+        case CHAR_CALIBRATION_SIGNAL:
+            return Calibration;
+            break;
 
         default:
             break;
@@ -96,6 +111,17 @@ signalReception SerialCommunication::updateReception()
     }
     return Void;
 }
+
+void SerialCommunication::printOrientation(ORIENTATION* ori)
+{
+    _debugPort->print("Yaw Pitch Roll : ");
+    _debugPort->print(ori->yaw);
+    _debugPort->print(" ; ");
+    _debugPort->print(ori->pitch);
+    _debugPort->print(" ; ");
+    _debugPort->println(ori->roll);
+}
+
 /* Function to call for Magnetometer calibration with MotionCal
 
 int calibration_MotionCal()

@@ -9,18 +9,20 @@
 #define SERIALCOMMUNICATION_H_
 
 #include <Arduino.h>
-//#include <Print.h>
+#include <FreematicsPlus.h>
 
 #define CHAR_PING_SIGNAL '!'
 #define CHAR_START_SIGNAL 'y'
 #define CHAR_STOP_SIGNAL 'n'
+#define CHAR_CALIBRATION_SIGNAL 'c'
 
 typedef enum
 {
     Void,
     Ping,
     Start,
-    Stop
+    Stop,
+    Calibration
 } signalReception;
 
 class SerialCommunication
@@ -48,6 +50,12 @@ public:
     // GOAL / Check if CHAR_PING_SIGNAL, CHAR_START_SIGNAL, CHAR_STOP_SIGNAL are received on telemetryPort
     // OUT  / signalReception : element associated to the received signal, if nothing relevant received : Void
     signalReception updateReception();
+
+    // GOAL / Print to debugPort. Use with care !
+    void print(const String &message);
+    void print(float nbr);
+
+    void printOrientation(ORIENTATION* ori);
 
 private:
     HardwareSerial *_telemetryPort;

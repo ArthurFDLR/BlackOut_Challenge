@@ -201,7 +201,7 @@ class MainWindow(Qtw.QWidget):
         self.settings.newCalibrationState.connect(
             lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n"))  # Send 'y' if check box true, else send 'n'
 
-        if (False): #True if Com port connexion established
+        if (True): #True if Com port connexion established
             self.parserThread=Parser(self)
 
             self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
