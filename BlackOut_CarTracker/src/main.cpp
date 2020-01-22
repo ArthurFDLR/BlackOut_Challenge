@@ -9,26 +9,26 @@ ORIENTATION ori;
 SerialCommunication communicationPort;
 MovementComputation *moveComputation_ptr;
 
-float acc[3], gyr[3], mag[3];
-int i = 0;
-unsigned long timeLast1, timeLast2;
+unsigned long timeLast;
 bool communicationState = false;
+const float loopFrequency = 5.0;
 
 void setup()
 {
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
-  timeLast1 = millis();
-  timeLast2 = millis();
-  moveComputation_ptr = new MovementComputation(&communicationPort);
+  timeLast = millis();
+  moveComputation_ptr = new MovementComputation(loopFrequency,&Serial, false);
+
+  delay(50);
 }
 
 void loop()
 {
-  if (millis() - timeLast1 > 100)
+
+  if (millis() - timeLast > ((int) 1000/loopFrequency))
   {
-    i++;
-    timeLast1 = millis();
+    timeLast = millis();
 
     // Data reception
     switch (communicationPort.updateReception())
@@ -47,82 +47,85 @@ void loop()
       communicationPort.sendDebugMessage("Com stopped");
       break;
 
+    case Calibration:
+      communicationPort.sendDebugMessage("Calibration begin");
+      moveComputation_ptr->calibration();
+      break;
+
     default:
       break;
     }
 
-    // Send Yaw
-    String listName[] = {"Y"};
-    float listVal[] = {moveComputation_ptr->getYaw()};
-    timeLast1 = millis();
-    communicationPort.sendDebugMessage(String(moveComputation_ptr->getYaw()));
-    communicationPort.sendData(1, listName, listVal);
+    moveComputation_ptr->updateDataIMU();
+    moveComputation_ptr->computeRotationMovement();
+
+    // moveComputation_ptr->updateDataOBD();
+    // moveComputation_ptr->computeLinearMovement();
 
     // Simulate movement
     if (communicationState)
     {
-      moveComputation_ptr->sendRotationMovement();
+      communicationPort.printDebugVector(&(moveComputation_ptr->accVec));
     }
 
+    // Send debug
+    communicationPort.print("Delta_theta : ");
+    communicationPort.print(moveComputation_ptr->_deltaTheta);
+    
+    // communicationPort.print("    |    Delta_X : ");
+    // communicationPort.print(moveComputation_ptr->_deltaX);
+    
+    communicationPort.print("\n");
+
     /*
-    float listVal[3];
-    listVal[0] = (float)i * PI;
-    listVal[1] = (float)i * PI * 2;
-    listVal[2] = (float)i * PI * 3;
-    String listName[3] = {"dX", "dY", "dTh"};
-    communicationPort.sendData(3, listName, listVal);
+    // Send rotation in new frame
+    communicationPort.printOrientation(&moveComputation_ptr->oriRaw);
+    communicationPort.printOrientation(&moveComputation_ptr->ori);
     */
   }
 }
 
 /*
-if (imu.read(acc, gyr, mag, 0, &ori)) {
-  Serial.print("Accelerometer: X=");
-  Serial.print(acc[0]);
-  Serial.print("g Y=");
-  Serial.print(acc[1]);
-  Serial.print("g Z=");
-  Serial.print(acc[2]);
-  Serial.println("g");
-}
-*/
 
-#endif
-/*
 #include <FreematicsPlus.h>
-#include <SerialCommunication.h>
 
 MPU9250_DMP imu;
-
-SerialCommunication communicationPort;
 
 void setup()
 {
   delay(1000);
   Serial.begin(115200);
-
+  Serial.println("MPU-9250 DMP Quaternion Test");
   if (!imu.begin(true, 10))
   {
-
-    for (;;)
-      ;
+    Serial.println("Unable to communicate with MPU-9250");
+    Serial.println("Check connections, and try again.");
+    for (;;);
   }
-
+  Serial.println("MPU-9250 OK");
 }
-float acc[3];
-ORIENTATION ori;
 
 void loop()
 {
-
-  if (imu.read(acc, 0, 0, 0, &ori))
-  {
-    String listName[] = {"Yaw"};
-    float listVal[] = {imu.yaw};
-    communicationPort.sendData(1, listName, listVal);
+  float acc[3];
+  ORIENTATION ori;
+  if (imu.read(acc, 0, 0, 0, &ori)) {
+    Serial.print("Accelerometer: X=");
+    Serial.print(acc[0]);
+    Serial.print("g Y=");
+    Serial.print(acc[1]);
+    Serial.print("g Z=");
+    Serial.print(acc[2]);
+    Serial.println("g");
+    Serial.print("Orientation: ");
+    Serial.print(imu.yaw);
+    Serial.print(' ');
+    Serial.print(imu.pitch);
+    Serial.print(' ');
+    Serial.println(imu.roll);
   }
-
   delay(50);
   return;
 }
 */
+#endif
