@@ -13,6 +13,7 @@ float acc[3], gyr[3], mag[3];
 int i = 0;
 unsigned long timeLast1, timeLast2;
 bool communicationState = false;
+const float loopFrequency = 10.0;
 
 void setup()
 {
@@ -20,7 +21,7 @@ void setup()
   communicationPort.Setup(&Serial, &Serial);
   timeLast1 = millis();
   timeLast2 = millis();
-  moveComputation_ptr = new MovementComputation(&Serial);
+  moveComputation_ptr = new MovementComputation(loopFrequency,&Serial);
 
   delay(50);
 
@@ -30,7 +31,7 @@ void setup()
 void loop()
 {
 
-  if (millis() - timeLast1 > 100)
+  if (millis() - timeLast1 > ((int) 1000/loopFrequency))
   {
     i++;
     timeLast1 = millis();
@@ -75,6 +76,8 @@ void loop()
     communicationPort.printDebugVector(&(moveComputation_ptr->accVecRaw));
     communicationPort.print("   |   Gyr : ");
     communicationPort.printDebugVector(&(moveComputation_ptr->gyrVecRaw));
+    communicationPort.print("   |   Ori : ");
+    communicationPort.printDebugVector(&(moveComputation_ptr->oriVecRaw));
     communicationPort.print("\n");
 
     /*

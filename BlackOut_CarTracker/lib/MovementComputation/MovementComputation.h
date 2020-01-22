@@ -8,7 +8,7 @@
 
 #include <Arduino.h>
 #include <FreematicsPlus.h>
-//#include <SerialCommunication.h>
+#include <MadgwickAHRS.h>
 
 struct Vector
 {
@@ -20,7 +20,7 @@ struct Vector
 class MovementComputation
 {
 public:
-    MovementComputation(HardwareSerial* comPort);
+    MovementComputation(float updateFrequency, HardwareSerial* comPort);
 
     Vector gyrVecRaw; //Reading of the IMU
     Vector gyrVec; //Set in the new frame
@@ -67,6 +67,7 @@ public:
 private:
     MPU9250_DMP _imu;
     HardwareSerial* _comPort_ptr;
+    Madgwick filterMahony;
 
     // Data computation
     unsigned long _deltaT = 0;

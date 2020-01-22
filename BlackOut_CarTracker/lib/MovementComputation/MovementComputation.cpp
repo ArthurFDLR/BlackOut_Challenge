@@ -1,7 +1,7 @@
 
 #include <MovementComputation.h>
 
-MovementComputation::MovementComputation(HardwareSerial *comPort)
+MovementComputation::MovementComputation(float updateFrequency, HardwareSerial *comPort)
 {
 
     _comPort_ptr = comPort;
@@ -15,14 +15,15 @@ MovementComputation::MovementComputation(HardwareSerial *comPort)
             ;
     }
 
-    /*
+       /*
     if (_imu.setGyroFSR(250) != INV_SUCCESS)
     {
-        _comPort_ptr->sendDebugMessage("Unable to set gyro dps");
+        _comPort_ptr->println("Unable to set gyro dps");
         while (1)
             ;
     }
 
+ 
     if (_imu.setAccelFSR(2) != INV_SUCCESS)
     {
         _comPort_ptr->sendDebugMessage("Unable to set accelerometer resolution");
@@ -39,6 +40,8 @@ MovementComputation::MovementComputation(HardwareSerial *comPort)
     }
     */
     _comPort_ptr->println("MPU-9250 OK");
+
+    filterMahony.begin(updateFrequency);
 
     _lastTime = millis();
 }
@@ -139,13 +142,18 @@ void MovementComputation::updateData()
     accVecRaw.z = _imu.az * (GtoMs / MPUtoG);
     convertVectorFrame(&accVecRaw, &accVec);
 
-    gyrVecRaw.x = _imu.gx;
-    gyrVecRaw.y = _imu.gy;
-    gyrVecRaw.z = _imu.gz;
+    
+    gyrVecRaw.x = (((gyr[0] < pow(10.0,38.0)) & (gyr[0] > -pow(10.0,38.0))) ? gyr[0] : 0.0);
+    gyrVecRaw.y = (((gyr[1] < pow(10.0,38.0)) & (gyr[1] > -pow(10.0,38.0))) ? gyr[1] : 0.0);
+    gyrVecRaw.z = (((gyr[2] < pow(10.0,38.0)) & (gyr[2] > -pow(10.0,38.0))) ? gyr[2] : 0.0);
     convertVectorFrame(&gyrVecRaw, &gyrVec);
 
-    oriVecRaw.x = ori.pitch;
-    oriVecRaw.y = ori.roll;
-    oriVecRaw.z = ori.yaw;
+
+    filterMahony.updateIMU(gyrVecRaw.x ,gyrVecRaw.y, gyrVecRaw.z, accVecRaw.x, accVecRaw.y, accVecRaw.z);
+    
+    oriVecRaw.x = filterMahony.getPitch();
+    oriVecRaw.y = filterMahony.getRoll();
+    oriVecRaw.z = filterMahony.getYaw();
     convertVectorFrame(&oriVecRaw, &oriVec);
+
 }
