@@ -8,21 +8,28 @@
 
 #include <Arduino.h>
 #include <FreematicsPlus.h>
-#include <SerialCommunication.h>
+//#include <SerialCommunication.h>
 
+struct Vector
+{
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+};
 
 class MovementComputation
 {
 public:
+    MovementComputation(HardwareSerial* comPort);
 
-    float accVectorRaw[3] = {0.0, 0.0, 0.0}; //Reading of the IMU
-    float oriVectorRaw[3] = {0.0, 0.0, 0.0}; //Reading of the IMU
-    float accVector[3] = {0.0, 0.0, 0.0}; //Set in the new frame
-    float oriVector[3] = {0.0, 0.0, 0.0}; //Set in the new frame
-    ORIENTATION oriRaw;
-    ORIENTATION ori;
+    Vector gyrVecRaw; //Reading of the IMU
+    Vector gyrVec; //Set in the new frame
 
-    MovementComputation(SerialCommunication* comPort);
+    Vector accVecRaw;
+    Vector accVec;
+
+    Vector oriVecRaw;
+    Vector oriVec;
 
     //// CALIBRATION ////
     /////////////////////
@@ -43,7 +50,7 @@ public:
     void updateData();
 
     // GOAL  / Change frame of the vector to the one defined by rotation by _rotAngle1 on axis 1 and _rotAngle2 on axis 2
-    void convertVectorFrame(float* oldVector, float* newVector);
+    void convertVectorFrame(Vector* oldVector, Vector* newVector);
 
     // GOAL / Compute deltaX, distance travalled by the car during deltaT
     void computeLinearMovement();
@@ -54,12 +61,12 @@ public:
     //// DEBUG ////
     ///////////////
 
-    void sendRotationMovement(float dTh = 0.087266, float dX = 1.0);
+    // void sendRotationMovement(float dTh = 0.087266, float dX = 1.0);
 
 
 private:
     MPU9250_DMP _imu;
-    SerialCommunication* _comPort_ptr;
+    HardwareSerial* _comPort_ptr;
 
     // Data computation
     unsigned long _deltaT = 0;

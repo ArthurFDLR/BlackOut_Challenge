@@ -20,7 +20,7 @@ void setup()
   communicationPort.Setup(&Serial, &Serial);
   timeLast1 = millis();
   timeLast2 = millis();
-  moveComputation_ptr = new MovementComputation(&communicationPort);
+  moveComputation_ptr = new MovementComputation(&Serial);
 
   delay(50);
 
@@ -67,16 +67,21 @@ void loop()
     // Simulate movement
     if (communicationState)
     {
-      moveComputation_ptr->sendRotationMovement();
+      communicationPort.printDebugVector(&(moveComputation_ptr->accVec));
     }
 
-    // Send Acceleration
-    // communicationPort.sendDebugMessage("Acc before : " + String(moveComputation_ptr->accVectorRaw[0]) + " ; " + String(moveComputation_ptr->accVectorRaw[1]) + " ; " + String(moveComputation_ptr->accVectorRaw[2]));
-    // communicationPort.sendDebugMessage("Acc after : " + String(moveComputation_ptr->accVector[0]) + " ; " + String(moveComputation_ptr->accVector[1]) + " ; " + String(moveComputation_ptr->accVector[2]));
-    
+    // Send debug
+    communicationPort.print("Acc : ");
+    communicationPort.printDebugVector(&(moveComputation_ptr->accVecRaw));
+    communicationPort.print("   |   Gyr : ");
+    communicationPort.printDebugVector(&(moveComputation_ptr->gyrVecRaw));
+    communicationPort.print("\n");
+
+    /*
     // Send rotation in new frame
     communicationPort.printOrientation(&moveComputation_ptr->oriRaw);
     communicationPort.printOrientation(&moveComputation_ptr->ori);
+    */
   }
 }
 

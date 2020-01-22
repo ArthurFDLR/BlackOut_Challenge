@@ -1,0 +1,151 @@
+
+#include <MovementComputation.h>
+
+MovementComputation::MovementComputation(HardwareSerial *comPort)
+{
+
+    _comPort_ptr = comPort;
+
+    _comPort_ptr->println("MPU-9250 DMP Quaternion Test");
+
+    if (!_imu.begin(true, 10)) //Activate data fusion
+    {
+        _comPort_ptr->println("Unable to communicate with MPU-9250");
+        while (1)
+            ;
+    }
+
+    /*
+    if (_imu.setGyroFSR(250) != INV_SUCCESS)
+    {
+        _comPort_ptr->sendDebugMessage("Unable to set gyro dps");
+        while (1)
+            ;
+    }
+
+    if (_imu.setAccelFSR(2) != INV_SUCCESS)
+    {
+        _comPort_ptr->sendDebugMessage("Unable to set accelerometer resolution");
+        while (1)
+            ;
+    }
+    */
+    /*
+    if (_imu.setLPF(20) != INV_SUCCESS)
+    {
+        _comPort_ptr->sendDebugMessage("Unable to set filter");
+        while (1)
+            ;
+    }
+    */
+    _comPort_ptr->println("MPU-9250 OK");
+
+    _lastTime = millis();
+}
+
+/*
+void MovementComputation::sendRotationMovement(float dTh, float dX)
+{
+    String listName[] = {"dX", "dTh"};
+    float listVal[] = {dX, dTh};
+}
+*/
+
+bool MovementComputation::calibration()
+{
+    setCalibrationAcceleration();
+    computeRotationAngle();
+    
+    _comPort_ptr->print("\n");
+    _comPort_ptr->println("Calibration done");
+
+    return false;
+}
+
+bool MovementComputation::computeRotationAngle()
+{
+    _rotAngle1 = asin(-accVectorCalibration[1]);
+    _rotAngle2 = atan(accVectorCalibration[0] / accVectorCalibration[2]);
+    return true;
+}
+
+void MovementComputation::convertVectorFrame(Vector* oldVector, Vector* newVector)
+{
+    newVector->x = (cos(_rotAngle2) * oldVector->x) - (sin(_rotAngle2) * oldVector->z);
+    newVector->y = (- sin(_rotAngle1) * sin(_rotAngle2) * oldVector->x) + (cos(_rotAngle2) * oldVector->y) - (sin(_rotAngle1) * cos(_rotAngle2) * oldVector->z);
+    newVector->z = (cos(_rotAngle1) * sin(_rotAngle2) * oldVector->x) + (sin(_rotAngle1) * oldVector->y) + (cos(_rotAngle2) * cos(_rotAngle1) * oldVector->z);
+}
+
+void MovementComputation::computeLinearMovement()
+{
+}
+
+void MovementComputation::computeRotationMovement()
+{
+
+}
+
+bool MovementComputation::setCalibrationAcceleration(uint8_t nbrSample, uint8_t frequency)
+{
+    unsigned int delay = 1000 / frequency;
+    unsigned long timeLast;
+    timeLast = millis();
+    uint16_t i = 1;
+    float averageAccVect[3] = {0.0, 0.0, 0.0};
+
+    while (i < nbrSample)
+    {
+        if (millis() - timeLast > delay)
+        {
+            timeLast = millis();
+            _comPort_ptr->print(".");
+
+            if (_imu.updateAccel() == INV_SUCCESS)
+            {
+                averageAccVect[0] = (averageAccVect[0] * i + _imu.ax) / (i + 1);
+                averageAccVect[1] = (averageAccVect[1] * i + _imu.ay) / (i + 1);
+                averageAccVect[2] = (averageAccVect[2] * i + _imu.az) / (i + 1);
+                i += 1;
+            }
+        }
+    }
+
+    MPUtoG = sqrt(((averageAccVect[0] * averageAccVect[0]) + (averageAccVect[1] * averageAccVect[1]) + (averageAccVect[2] * averageAccVect[2])));
+
+    accVectorCalibration[0] = averageAccVect[0] / MPUtoG;
+    accVectorCalibration[1] = averageAccVect[1] / MPUtoG;
+    accVectorCalibration[2] = averageAccVect[2] / MPUtoG;
+    
+    return true;
+}
+
+void MovementComputation::updateData()
+{
+    float acc[3];
+    float gyr[3];
+    ORIENTATION ori;
+
+    while (_imu.read(acc, gyr, 0, 0, &ori)) // To empty buffer and get last value
+    {
+        _comPort_ptr->print("_");
+        delay(10);
+    }
+
+    _deltaT = millis() - _lastTime;
+    _lastTime = millis();
+
+    accVecRaw.x = _imu.ax * (GtoMs / MPUtoG);
+    accVecRaw.y = _imu.ay * (GtoMs / MPUtoG);
+    accVecRaw.z = _imu.az * (GtoMs / MPUtoG);
+    convertVectorFrame(&accVecRaw, &accVec);
+
+    gyrVecRaw.x = _imu.gx;
+    gyrVecRaw.y = _imu.gy;
+    gyrVecRaw.z = _imu.gz;
+    convertVectorFrame(&gyrVecRaw, &gyrVec);
+
+    oriVecRaw.x = ori.pitch;
+    oriVecRaw.y = ori.roll;
+    oriVecRaw.z = ori.yaw;
+    convertVectorFrame(&oriVecRaw, &oriVec);
+}

@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include <FreematicsPlus.h>
+#include <MovementComputation.h>
 
 #define CHAR_PING_SIGNAL '!'
 #define CHAR_START_SIGNAL 'y'
@@ -55,7 +56,7 @@ public:
     void print(const String &message);
     void print(float nbr);
 
-    void printOrientation(ORIENTATION* ori);
+    void printDebugVector(Vector* vec);
 
 private:
     HardwareSerial *_telemetryPort;

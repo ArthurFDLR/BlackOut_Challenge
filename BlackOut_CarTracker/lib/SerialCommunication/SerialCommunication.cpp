@@ -112,14 +112,15 @@ signalReception SerialCommunication::updateReception()
     return Void;
 }
 
-void SerialCommunication::printOrientation(ORIENTATION* ori)
+void SerialCommunication::printDebugVector(Vector* vec)
 {
-    _debugPort->print("Yaw Pitch Roll : ");
-    _debugPort->print(ori->yaw);
+    _debugPort->print("( ");
+    _debugPort->print(vec->x);
     _debugPort->print(" ; ");
-    _debugPort->print(ori->pitch);
+    _debugPort->print(vec->y);
     _debugPort->print(" ; ");
-    _debugPort->println(ori->roll);
+    _debugPort->print(vec->z);
+    _debugPort->print(" )");
 }
 
 /* Function to call for Magnetometer calibration with MotionCal
