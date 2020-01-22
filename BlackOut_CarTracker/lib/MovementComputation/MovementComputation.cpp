@@ -1,66 +1,56 @@
 
 #include <MovementComputation.h>
 
-MovementComputation::MovementComputation(float updateFrequency, HardwareSerial *comPort)
+MovementComputation::MovementComputation(float updateFrequency, HardwareSerial *comPort, bool OBD, bool IMU)
 {
-
     _comPort_ptr = comPort;
 
-    _comPort_ptr->println("MPU-9250 DMP Quaternion Test");
+    // initializations OBD
+    _comPort_ptr->print("Launch system");
 
-    if (!_imu.begin(true, 10)) //Activate data fusion
+    if (OBD)
     {
-        _comPort_ptr->println("Unable to communicate with MPU-9250");
-        while (1)
-            ;
+        while (!sys.begin())
+        {
+            _comPort_ptr->print(".");
+        }
+        Serial.println(sys.version);
+        obd.begin(sys.link);
+
+        Serial.print("Connecting to OBD");
+        if (obd.init())
+        {
+            obdConnected = true;
+            _comPort_ptr->print("OK");
+        }
+        else
+        {
+            _comPort_ptr->print(".");
+        }
     }
 
-       /*
-    if (_imu.setGyroFSR(250) != INV_SUCCESS)
+    if (IMU)
     {
-        _comPort_ptr->println("Unable to set gyro dps");
-        while (1)
-            ;
+        if (!_imu.begin(true, 10)) //Activate data fusion
+        {
+            _comPort_ptr->println("Unable to communicate with MPU-9250");
+            while (1)
+                ;
+        }
+        calibration();
+        filterMahony.begin(updateFrequency);
+        _comPort_ptr->println("MPU-9250 OK and calibrated");
     }
-
- 
-    if (_imu.setAccelFSR(2) != INV_SUCCESS)
-    {
-        _comPort_ptr->sendDebugMessage("Unable to set accelerometer resolution");
-        while (1)
-            ;
-    }
-    */
-    /*
-    if (_imu.setLPF(20) != INV_SUCCESS)
-    {
-        _comPort_ptr->sendDebugMessage("Unable to set filter");
-        while (1)
-            ;
-    }
-    */
-    _comPort_ptr->println("MPU-9250 OK");
-
-    filterMahony.begin(updateFrequency);
 
     _lastTime = millis();
 }
-
-/*
-void MovementComputation::sendRotationMovement(float dTh, float dX)
-{
-    String listName[] = {"dX", "dTh"};
-    float listVal[] = {dX, dTh};
-}
-*/
 
 bool MovementComputation::calibration()
 {
     setCalibrationAcceleration();
     computeRotationAngle();
-    
+
     _comPort_ptr->print("\n");
-    _comPort_ptr->println("Calibration done");
 
     return false;
 }
@@ -72,20 +62,63 @@ bool MovementComputation::computeRotationAngle()
     return true;
 }
 
-void MovementComputation::convertVectorFrame(Vector* oldVector, Vector* newVector)
+void MovementComputation::convertVectorFrame(Vector *oldVector, Vector *newVector)
 {
     newVector->x = (cos(_rotAngle2) * oldVector->x) - (sin(_rotAngle2) * oldVector->z);
-    newVector->y = (- sin(_rotAngle1) * sin(_rotAngle2) * oldVector->x) + (cos(_rotAngle2) * oldVector->y) - (sin(_rotAngle1) * cos(_rotAngle2) * oldVector->z);
+    newVector->y = (-sin(_rotAngle1) * sin(_rotAngle2) * oldVector->x) + (cos(_rotAngle2) * oldVector->y) - (sin(_rotAngle1) * cos(_rotAngle2) * oldVector->z);
     newVector->z = (cos(_rotAngle1) * sin(_rotAngle2) * oldVector->x) + (sin(_rotAngle1) * oldVector->y) + (cos(_rotAngle2) * cos(_rotAngle1) * oldVector->z);
+}
+
+bool MovementComputation::updateDataOBD()
+{
+    bool out = true;
+    if (!obdConnected)
+    {
+        _comPort_ptr->print("Reconnecting to OBD");
+        if (obd.init())
+        {
+            obdConnected = true;
+            _comPort_ptr->print("OK");
+        }
+        else
+        {
+            _comPort_ptr->print(".");
+        }
+    }
+
+    if (! obd.readPID(PID_RPM, carSpeed))
+    {
+        carSpeed = 0;
+        out = false;
+    }
+
+    carSpeed *= KmH2MS;
+
+    if (obd.errors > 2)
+    {
+        _comPort_ptr->print("Reconnecting to OBD");
+        obdConnected = false;
+        obd.reset();
+    }
+
+    return out;
 }
 
 void MovementComputation::computeLinearMovement()
 {
+    _deltaX = ((float)_deltaT/1000.0) * carSpeed;
 }
 
-void MovementComputation::computeRotationMovement()
+void MovementComputation::computeRotationMovement(bool rawData)
 {
-
+    if (rawData)
+    {
+        _deltaTheta = (oriVecRawLast.z - oriVecRaw.z) * expFilterCoeff + _deltaTheta * (1.0 - expFilterCoeff);
+    }
+    else
+    {
+        _deltaTheta = (oriVecLast.z - oriVec.z) * expFilterCoeff + _deltaTheta * (1.0 - expFilterCoeff);
+    }
 }
 
 bool MovementComputation::setCalibrationAcceleration(uint8_t nbrSample, uint8_t frequency)
@@ -118,11 +151,11 @@ bool MovementComputation::setCalibrationAcceleration(uint8_t nbrSample, uint8_t 
     accVectorCalibration[0] = averageAccVect[0] / MPUtoG;
     accVectorCalibration[1] = averageAccVect[1] / MPUtoG;
     accVectorCalibration[2] = averageAccVect[2] / MPUtoG;
-    
+
     return true;
 }
 
-void MovementComputation::updateData()
+void MovementComputation::updateDataIMU()
 {
     float acc[3];
     float gyr[3];
@@ -137,23 +170,20 @@ void MovementComputation::updateData()
     _deltaT = millis() - _lastTime;
     _lastTime = millis();
 
-    accVecRaw.x = _imu.ax * (GtoMs / MPUtoG);
-    accVecRaw.y = _imu.ay * (GtoMs / MPUtoG);
-    accVecRaw.z = _imu.az * (GtoMs / MPUtoG);
+    accVecRaw.x = _imu.ax * ( GtoMs / MPUtoG);
+    accVecRaw.y = _imu.ay * ( GtoMs / MPUtoG);
+    accVecRaw.z = _imu.az * ( GtoMs / MPUtoG);
     convertVectorFrame(&accVecRaw, &accVec);
 
-    
-    gyrVecRaw.x = (((gyr[0] < pow(10.0,38.0)) & (gyr[0] > -pow(10.0,38.0))) ? gyr[0] : 0.0);
-    gyrVecRaw.y = (((gyr[1] < pow(10.0,38.0)) & (gyr[1] > -pow(10.0,38.0))) ? gyr[1] : 0.0);
-    gyrVecRaw.z = (((gyr[2] < pow(10.0,38.0)) & (gyr[2] > -pow(10.0,38.0))) ? gyr[2] : 0.0);
+    gyrVecRaw.x = (((gyr[0] < pow(10.0, 38.0)) & (gyr[0] > -pow(10.0, 38.0))) ? gyr[0] : 0.0);
+    gyrVecRaw.y = (((gyr[1] < pow(10.0, 38.0)) & (gyr[1] > -pow(10.0, 38.0))) ? gyr[1] : 0.0);
+    gyrVecRaw.z = (((gyr[2] < pow(10.0, 38.0)) & (gyr[2] > -pow(10.0, 38.0))) ? gyr[2] : 0.0);
     convertVectorFrame(&gyrVecRaw, &gyrVec);
 
+    filterMahony.updateIMU(gyrVecRaw.x, gyrVecRaw.y, gyrVecRaw.z, accVecRaw.x, accVecRaw.y, accVecRaw.z);
 
-    filterMahony.updateIMU(gyrVecRaw.x ,gyrVecRaw.y, gyrVecRaw.z, accVecRaw.x, accVecRaw.y, accVecRaw.z);
-    
     oriVecRaw.x = filterMahony.getPitch();
     oriVecRaw.y = filterMahony.getRoll();
     oriVecRaw.z = filterMahony.getYaw();
     convertVectorFrame(&oriVecRaw, &oriVec);
-
 }

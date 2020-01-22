@@ -10,6 +10,9 @@
 #include <FreematicsPlus.h>
 #include <MadgwickAHRS.h>
 
+#define KmH2MS 0.27777F
+#define GtoMs 9.80733F // w/ altitude = 100m ; latitude = 46.5833deg  (Poitiers)
+
 struct Vector
 {
     float x = 0.0;
@@ -20,16 +23,20 @@ struct Vector
 class MovementComputation
 {
 public:
-    MovementComputation(float updateFrequency, HardwareSerial* comPort);
+    MovementComputation(float updateFrequency, HardwareSerial* comPort, bool OBD = true, bool IMU = true);
 
-    Vector gyrVecRaw; //Reading of the IMU
-    Vector gyrVec; //Set in the new frame
+    Vector gyrVecRaw; // [deg/s] Reading of the IMU
+    Vector gyrVec; // [deg/s] Set in the new frame
 
-    Vector accVecRaw;
-    Vector accVec;
+    Vector accVecRaw; // [m/s^2]
+    Vector accVec; // [m/s^2]
 
-    Vector oriVecRaw;
-    Vector oriVec;
+    Vector oriVecRawLast; // [deg]
+    Vector oriVecRaw; // [deg]
+    Vector oriVecLast; // [deg]
+    Vector oriVec; // [deg]
+
+    int carSpeed; // [m/s]
 
     //// CALIBRATION ////
     /////////////////////
@@ -47,7 +54,9 @@ public:
     //// UPDATE MOVEMENT ////
     /////////////////////////
 
-    void updateData();
+    void updateDataIMU();
+
+    bool updateDataOBD();
 
     // GOAL  / Change frame of the vector to the one defined by rotation by _rotAngle1 on axis 1 and _rotAngle2 on axis 2
     void convertVectorFrame(Vector* oldVector, Vector* newVector);
@@ -55,7 +64,7 @@ public:
     // GOAL / Compute deltaX, distance travalled by the car during deltaT
     void computeLinearMovement();
 
-    void computeRotationMovement();
+    void computeRotationMovement(bool rawData = true);
 
 
     //// DEBUG ////
@@ -70,21 +79,27 @@ private:
     Madgwick filterMahony;
 
     // Data computation
+    const float expFilterCoeff = 0.8;
     unsigned long _deltaT = 0;
     unsigned long _lastTime = 0;
 
     float _deltaTheta = 0.0;
-    float _lastTheta = 0.0;
 
     float _deltaX = 0.0;
     float _lastX = 0.0;
 
-    // Calibration
+    // OBD
+
+    FreematicsESP32 sys; // Necessary to communication through OBD
+    COBD obd;
+    bool obdConnected = false;
+
+    // Calibration IMU
     double _rotAngle1 = 0.0;
     double _rotAngle2 = 0.0;
     float accVectorCalibration[3] = {0.0, 0.0, 0.0}; //[g] Calculated when the controller is not moving
     double MPUtoG = 1.0;
-    double GtoMs = 9.80733; // w/ altitude = 100m ; latitude = 46.5833deg  (Poitiers)
+    
 };
 
 

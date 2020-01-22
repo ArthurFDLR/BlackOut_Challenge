@@ -72,12 +72,10 @@ void loop()
     }
 
     // Send debug
-    communicationPort.print("Acc : ");
-    communicationPort.printDebugVector(&(moveComputation_ptr->accVecRaw));
-    communicationPort.print("   |   Gyr : ");
-    communicationPort.printDebugVector(&(moveComputation_ptr->gyrVecRaw));
-    communicationPort.print("   |   Ori : ");
+    communicationPort.print("Orientation : ");
     communicationPort.printDebugVector(&(moveComputation_ptr->oriVecRaw));
+    communicationPort.print("   |   ");
+    communicationPort.printDebugVector(&(moveComputation_ptr->oriVec));
     communicationPort.print("\n");
 
     /*
