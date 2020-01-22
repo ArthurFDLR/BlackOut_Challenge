@@ -4,7 +4,7 @@ from PyQt5 import QtCore as Qt
 from parseSerial import Parser
 from positionComputation import PositionComputation, PosEnum
 
-#import Goose_GUI as GUI
+import Goose_GUI as GUI
 
 class Comm(Qtw.QFrame):
     def __init__(self):
@@ -12,8 +12,11 @@ class Comm(Qtw.QFrame):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
         self.myLayout=Qtw.QHBoxLayout(self)
+
         self.lab=Qtw.QLabel("Last byte received : ")
+        self.lab.setAlignment(Qt.Qt.AlignCenter)
         self.myLayout.addWidget(self.lab)
+
         self.mess=Qtw.QLabel("")
         self.myLayout.addWidget(self.mess)
 
@@ -28,34 +31,57 @@ class initialisation_settings(Qtw.QFrame):
 
     def __init__(self, mainWindow):
         super().__init__()
-        #self.parent_window = mainWindow
         self.initUI()
 
     def initUI(self):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
         self.myLayout = Qtw.QGridLayout(self)
-        self.label = Qtw.QLabel("Settings (X,Y,Theta) :")
-        self.myLayout.addWidget(self.label, 2, 1)
+
+        self.label = Qtw.QLabel("Settings")
+        self.label.setAlignment(Qt.Qt.AlignCenter)
+        self.myLayout.addWidget(self.label, 2, 1, 1, 2)
+
+        #  Parametre x
+
         self.slider_x = Qtw.QSlider(Qt.Qt.Horizontal)
-        self.myLayout.addWidget(self.slider_x, 2, 2)
+        self.myLayout.addWidget(self.slider_x, 3, 2)
         self.slider_x.setMinimum(0)
         self.slider_x.setMaximum(3833)
         self.slider_x.setValue(3833//2)
+        self.label_x = Qtw.QLabel("X")
+        self.label_x.setAlignment(Qt.Qt.AlignCenter)
+        self.myLayout.addWidget(self.label_x, 3, 1)
+
+        #  Parametre y
+
         self.slider_y = Qtw.QSlider(Qt.Qt.Horizontal)
-        self.myLayout.addWidget(self.slider_y, 2, 3)
+        self.myLayout.addWidget(self.slider_y, 4, 2)
         self.slider_y.setMinimum(0)
         self.slider_y.setMaximum(3277)
         self.slider_y.setValue(3277//2)
+        self.label_y = Qtw.QLabel("Y")
+        self.label_y.setAlignment(Qt.Qt.AlignCenter)
+        self.myLayout.addWidget(self.label_y, 4, 1)
+
+        # Parametre theta
+
         self.dial_theta = Qtw.QDial()
-        self.myLayout.addWidget(self.dial_theta, 2, 4)
+        self.myLayout.addWidget(self.dial_theta, 5, 2)
         self.dial_theta.setMinimum(-180)
         self.dial_theta.setMaximum(180)
         self.dial_theta.setValue(0)
+        self.label_theta = Qtw.QLabel("Theta")
+        self.label_theta.setAlignment(Qt.Qt.AlignCenter)
+        self.myLayout.addWidget(self.label_theta, 5, 1)
+
+        # Check phase d'initialisation
+
         self.label_init = Qtw.QLabel("Initialisation")
+        self.label_init.setAlignment(Qt.Qt.AlignCenter)
         self.myLayout.addWidget(self.label_init, 1, 1)
         self.check_init = MySwitch()
-        self.myLayout.addWidget(self.check_init, 1, 3)
+        self.myLayout.addWidget(self.check_init, 1, 2)
 
         self.currentPosition = {
             PosEnum.POS_X : 0.0,
@@ -79,14 +105,12 @@ class initialisation_settings(Qtw.QFrame):
         self.currentPosition[PosEnum.POS_X] = self.slider_x.value()
         self.currentPosition[PosEnum.POS_Y] = self.slider_y.value()
         self.currentPosition[PosEnum.POS_THETA] = self.dial_theta.value()
-        print("hey")
         self.newPositionCalibration.emit(self.currentPosition)
 
 
 class MySwitch(Qtw.QPushButton):
     def __init__(self, parent = None):
         super().__init__(parent)
-        print('init')
         self.setCheckable(True)
         self.setMinimumWidth(66)
         self.setMinimumHeight(22)
@@ -102,9 +126,9 @@ class MySwitch(Qtw.QPushButton):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.translate(center)
-        painter.setBrush(QColor(0,0,0))
+        painter.setBrush(QColor(170,170,170))
 
-        pen = QPen(Qt.Qt.black)
+        pen = QPen(Qt.Qt.white)
         pen.setWidth(2)
         painter.setPen(pen)
 
@@ -140,17 +164,13 @@ class map_GUI(Qtw.QFrame):
         
         self.debugLabel=Qtw.QLabel("")
         self.myLayout.addWidget(self.debugLabel)
-        
-        
-        '''         LOUIS T TRO FOR <3
-        label = Qtw.QLabel(self)
+
+        self.label_image = Qtw.QLabel()
+        self.myLayout.addWidget(self.label_image)
         self.beacon = GUI.beacon()
         GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
-        pixmap = QPixmap('map.jpg')
-        label.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
-        self.show()
-        '''
+        pixmap = QPixmap("map_created.jpg")
+        self.label_image.setPixmap(pixmap)
 
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
@@ -167,13 +187,20 @@ class DebugMessage(Qtw.QFrame):
 class MainWindow(Qtw.QWidget):
     
     sendMessage = Qt.pyqtSignal(str)
+
     def __init__(self):
+
         ## SETUP ##
         super().__init__()
+
+        self.setStyleSheet(open("./design_GUI.css").read())
+
         self.mainLayout=Qtw.QGridLayout(self)
         self.setLayout(self.mainLayout)
+        self.mainLayout.setSpacing(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+
         self.posCompution = PositionComputation(self)
-        
 
         ## WIDGETS ##
         self.commWidget=Comm()
@@ -191,8 +218,7 @@ class MainWindow(Qtw.QWidget):
 
         self.mapWidget = map_GUI()
         self.mainLayout.addWidget(self.mapWidget, 1, 2, 4, 1)
-        
-        
+
         ## COMMUNICATION ##
 
         self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
