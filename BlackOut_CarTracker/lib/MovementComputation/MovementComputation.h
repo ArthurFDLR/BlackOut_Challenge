@@ -44,7 +44,8 @@ public:
 
     int carSpeed; // [m/s]
 
-    float _deltaTheta = 0.0;
+    float _deltaTheta = 0.0; // [deg]
+    float _deltaX = 0.0; // [m]
 
     //// CALIBRATION ////
     /////////////////////

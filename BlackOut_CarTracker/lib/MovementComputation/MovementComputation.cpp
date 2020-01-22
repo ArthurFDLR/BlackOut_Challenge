@@ -6,18 +6,18 @@ MovementComputation::MovementComputation(float updateFrequency, HardwareSerial *
     _comPort_ptr = comPort;
 
     // initializations OBD
-    _comPort_ptr->print("Launch system");
+    _comPort_ptr->print("Launch system \n");
 
     if (OBD)
     {
+        _comPort_ptr->print("Connecting to OBD");
         while (!sys.begin())
         {
             _comPort_ptr->print(".");
         }
-        Serial.println(sys.version);
         obd.begin(sys.link);
 
-        Serial.print("Connecting to OBD");
+        
         if (obd.init())
         {
             obdConnected = true;
@@ -31,6 +31,7 @@ MovementComputation::MovementComputation(float updateFrequency, HardwareSerial *
 
     if (IMU)
     {
+        _comPort_ptr->print("Connecting to IMU");
         if (!_imu.begin(true, 10)) //Activate data fusion
         {
             _comPort_ptr->println("Unable to communicate with MPU-9250");
@@ -163,7 +164,6 @@ void MovementComputation::updateDataIMU()
 
     while (_imu.read(acc, gyr, 0, 0, &ori)) // To empty buffer and get last value
     {
-        _comPort_ptr->print("_");
         delay(10);
     }
 

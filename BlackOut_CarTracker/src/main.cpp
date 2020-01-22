@@ -9,9 +9,7 @@ ORIENTATION ori;
 SerialCommunication communicationPort;
 MovementComputation *moveComputation_ptr;
 
-float acc[3], gyr[3], mag[3];
-int i = 0;
-unsigned long timeLast1, timeLast2;
+unsigned long timeLast;
 bool communicationState = false;
 const float loopFrequency = 5.0;
 
@@ -19,8 +17,7 @@ void setup()
 {
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
-  timeLast1 = millis();
-  timeLast2 = millis();
+  timeLast = millis();
   moveComputation_ptr = new MovementComputation(loopFrequency,&Serial, false);
 
   delay(50);
@@ -29,10 +26,9 @@ void setup()
 void loop()
 {
 
-  if (millis() - timeLast1 > ((int) 1000/loopFrequency))
+  if (millis() - timeLast > ((int) 1000/loopFrequency))
   {
-    i++;
-    timeLast1 = millis();
+    timeLast = millis();
 
     // Data reception
     switch (communicationPort.updateReception())
@@ -63,6 +59,9 @@ void loop()
     moveComputation_ptr->updateDataIMU();
     moveComputation_ptr->computeRotationMovement();
 
+    // moveComputation_ptr->updateDataOBD();
+    // moveComputation_ptr->computeLinearMovement();
+
     // Simulate movement
     if (communicationState)
     {
@@ -70,8 +69,12 @@ void loop()
     }
 
     // Send debug
-    communicationPort.print("Orientation : ");
+    communicationPort.print("Delta_theta : ");
     communicationPort.print(moveComputation_ptr->_deltaTheta);
+    
+    // communicationPort.print("    |    Delta_X : ");
+    // communicationPort.print(moveComputation_ptr->_deltaX);
+    
     communicationPort.print("\n");
 
     /*
