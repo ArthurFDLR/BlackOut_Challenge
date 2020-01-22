@@ -13,7 +13,7 @@ float acc[3], gyr[3], mag[3];
 int i = 0;
 unsigned long timeLast1, timeLast2;
 bool communicationState = false;
-const float loopFrequency = 10.0;
+const float loopFrequency = 5.0;
 
 void setup()
 {
@@ -21,11 +21,9 @@ void setup()
   communicationPort.Setup(&Serial, &Serial);
   timeLast1 = millis();
   timeLast2 = millis();
-  moveComputation_ptr = new MovementComputation(loopFrequency,&Serial);
+  moveComputation_ptr = new MovementComputation(loopFrequency,&Serial, false);
 
   delay(50);
-
-  moveComputation_ptr->calibration();
 }
 
 void loop()
@@ -62,8 +60,8 @@ void loop()
       break;
     }
 
-    moveComputation_ptr->updateData();
-
+    moveComputation_ptr->updateDataIMU();
+    moveComputation_ptr->computeRotationMovement();
 
     // Simulate movement
     if (communicationState)
@@ -73,9 +71,7 @@ void loop()
 
     // Send debug
     communicationPort.print("Orientation : ");
-    communicationPort.printDebugVector(&(moveComputation_ptr->oriVecRaw));
-    communicationPort.print("   |   ");
-    communicationPort.printDebugVector(&(moveComputation_ptr->oriVec));
+    communicationPort.print(moveComputation_ptr->_deltaTheta);
     communicationPort.print("\n");
 
     /*

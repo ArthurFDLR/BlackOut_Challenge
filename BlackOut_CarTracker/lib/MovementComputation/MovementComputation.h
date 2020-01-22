@@ -20,6 +20,12 @@ struct Vector
     float z = 0.0;
 };
 
+struct Movement
+{
+    float dX = 0.0;
+    float dTheta = 0.0;
+};
+
 class MovementComputation
 {
 public:
@@ -38,6 +44,8 @@ public:
 
     int carSpeed; // [m/s]
 
+    float _deltaTheta = 0.0;
+
     //// CALIBRATION ////
     /////////////////////
 
@@ -54,8 +62,14 @@ public:
     //// UPDATE MOVEMENT ////
     /////////////////////////
 
+    Movement getMovement();
+
+    void update();
+
+    // GOAL  / Update IMU related Vectors
     void updateDataIMU();
 
+    // GOAL  / Update carSpeed
     bool updateDataOBD();
 
     // GOAL  / Change frame of the vector to the one defined by rotation by _rotAngle1 on axis 1 and _rotAngle2 on axis 2
@@ -82,8 +96,6 @@ private:
     const float expFilterCoeff = 0.8;
     unsigned long _deltaT = 0;
     unsigned long _lastTime = 0;
-
-    float _deltaTheta = 0.0;
 
     float _deltaX = 0.0;
     float _lastX = 0.0;

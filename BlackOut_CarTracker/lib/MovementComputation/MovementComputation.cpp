@@ -182,8 +182,27 @@ void MovementComputation::updateDataIMU()
 
     filterMahony.updateIMU(gyrVecRaw.x, gyrVecRaw.y, gyrVecRaw.z, accVecRaw.x, accVecRaw.y, accVecRaw.z);
 
+    oriVecRawLast = oriVecRaw;
     oriVecRaw.x = filterMahony.getPitch();
     oriVecRaw.y = filterMahony.getRoll();
     oriVecRaw.z = filterMahony.getYaw();
+    oriVecLast = oriVec;
     convertVectorFrame(&oriVecRaw, &oriVec);
+}
+
+Movement MovementComputation::getMovement()
+{
+    Movement moveOut;
+    moveOut.dTheta = _deltaTheta;
+    moveOut.dX = _deltaX;
+    return moveOut;
+}
+
+void MovementComputation::update()
+{
+    updateDataOBD();
+    updateDataIMU();
+
+    computeRotationMovement();
+    computeLinearMovement();
 }
