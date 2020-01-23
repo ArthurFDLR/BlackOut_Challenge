@@ -28,13 +28,13 @@ def get_roi(img, x_center, y_center, width_screen, height_screen):
 # Necessite :
 ########################################################
 
-def create_frame_map(delta_X, delta_Y, theta, beacon):
+def create_frame_map(X, Y, theta, beacon):
 
     # Facteur de mise à l'échelle (px/m)
     scale = 0.51
     #  Mise à l'échelle ( X_scaled en px et X en m)
-    delta_X_scaled = int(delta_X * scale)
-    delta_Y_scaled = int(delta_Y * scale)
+    X_scaled = int(X * scale)
+    Y_scaled = int(Y * scale)
     #  Taille de l'image dans l'écran du GPS
     w_screen = 360
     h_screen = 240
@@ -49,16 +49,19 @@ def create_frame_map(delta_X, delta_Y, theta, beacon):
     global w_image
     h_image, w_image, _ = image.shape
 
+    #  Position centrale de la goose
+    pos_goose = (w_image//2,h_image//2)
+    center_screen = int(goose_pos*h_screen)
+
     #  Translation
-    mat_trans = np.float32([[1,0,delta_X_scaled],[0,1,delta_Y_scaled]])
-    image_trans = cv2.warpAffine(image,mat_trans,(h_image,w_image))
+    mat_trans = np.float32([[1,0,-X_scaled],[0,1,Y_scaled]])
+    image_trans = cv2.warpAffine(image,mat_trans,(w_image,h_image))
 
     #  Rotation
-    mat_rot = cv2.getRotationMatrix2D((h_image//2,w_image//2),theta,1) #(h_image,w_image)
-    image_rot = cv2.warpAffine(image_trans,mat_rot, (h_image,w_image))
-
+    mat_rot = cv2.getRotationMatrix2D(pos_goose, -theta, 1) #(h_image,w_image)
+    image_rot = cv2.warpAffine(image_trans,mat_rot, (w_image,h_image))
     #  Selection de la ROI
-    image_zoom = image_rot[(h_image-h_screen)//2:(h_image+h_screen)//2,(w_image-w_screen)//2:(w_image+w_screen)//2]
+    image_zoom = image_rot[(h_image-h_screen)//2-center_screen:(h_image+h_screen)//2-center_screen,(w_image-w_screen)//2:(w_image+w_screen)//2]
 
     #  Test du mode (Mode balise reconnue ou Mode Sans balise)
     if beacon:
@@ -68,10 +71,8 @@ def create_frame_map(delta_X, delta_Y, theta, beacon):
     #  Redimensionner la goose à la taille voulue
     goose = cv2.resize(goose, (w_g, w_g))
 
-    #  Redefinition de la position de la goose selon l'axe y sur l'écran
-    pos_goose_Y = h_screen // 2 + int(goose_pos * h_screen)
     #  Recuperation de la ROI pour placer la goose
-    roi_goose = image_zoom[pos_goose_Y - w_g // 2:pos_goose_Y + w_g // 2,
+    roi_goose = image_zoom[h_screen//2 + center_screen - w_g // 2:h_screen//2 + center_screen + w_g // 2,
                     w_screen // 2 - w_g // 2:w_screen // 2 + w_g // 2]
 
     #  Traitement d'image (But : Intégrer logo à fond transparent sur la carte)
@@ -87,23 +88,21 @@ def create_frame_map(delta_X, delta_Y, theta, beacon):
     mask = cv2.bitwise_not(mask)
     bk_masked = cv2.bitwise_and(roi_goose, roi_goose, mask=mask)
     final = cv2.bitwise_or(fg_masked, bk_masked)
-    image_zoom[pos_goose_Y - w_g // 2:pos_goose_Y + w_g // 2,
-                w_screen // 2 - w_g // 2:w_screen // 2 + w_g // 2] = final
+    image_zoom[h_screen // 2 + center_screen - w_g // 2:h_screen // 2 + center_screen + w_g // 2,
+        w_screen // 2 - w_g // 2:w_screen // 2 + w_g // 2] = final
 
     #  Rond vert pour insister sur la presence d'une balise
     if not beacon:
-        cv2.circle(image_zoom, (pos_goose_Y, w_screen//2), 2*w_g//3, (170, 255, 0), 3)
-        cv2.circle(image_zoom, (pos_goose_Y, w_screen//2), 2*w_g//3 + w_g//6, (170, 255, 0), 2)
-        cv2.circle(image_zoom, (pos_goose_Y, w_screen//2), 2*w_g//3 + w_g//4, (170, 255, 0), 1)
+        cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3, (170, 255, 0), 2)
+        cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//6, (170, 255, 0), 1)
+        cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//2, (170, 255, 0), 1)
 
     #  Agrandissement de la carte
     image_res = cv2.resize(image_zoom, None, None, 1.5, 1.5)
 
-    #  Ecriture de la carte translatee pour recuperation future
-    cv2.imwrite('map.jpg', image_trans)
-
     #  Ecriture de la carte traitee a recuperer
     cv2.imwrite('map_created.jpg', image_res)
+    #  cv2.imshow('res', image_res)
 
 
 #################################
@@ -111,19 +110,19 @@ def create_frame_map(delta_X, delta_Y, theta, beacon):
 #################################
 
 '''
-    cv2.imshow('res', image_res)
-
-delta_X = 3
-delta_Y = 2
-theta = 0.9
+X = 100
+Y = 100
+theta = np.arange(0,720,15)
 image = cv2.imread("map_chassou_ENSMA.jpg")
 cv2.imwrite('map.jpg', image)
-while True :
-    create_frame_map(delta_X,delta_Y,theta,beacon)
+for angle in theta:
+#while True :
+    create_frame_map(X, Y,angle,beacon)
+    cv2.waitKey(0)
+'''
 
-    theta += 1
-
-    keypress = cv2.waitKey(1) & 0xFF
-    if keypress == ord('q'):
-        break
+'''
+keypress = cv2.waitKey(1) & 0xFF
+if keypress == ord('q'):
+    break
 '''

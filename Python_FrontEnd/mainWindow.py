@@ -46,9 +46,9 @@ class initialisation_settings(Qtw.QFrame):
 
         self.slider_x = Qtw.QSlider(Qt.Qt.Horizontal)
         self.myLayout.addWidget(self.slider_x, 3, 2)
-        self.slider_x.setMinimum(0)
-        self.slider_x.setMaximum(3833)
-        self.slider_x.setValue(3833//2)
+        self.slider_x.setMinimum(-1500)
+        self.slider_x.setMaximum(1500)
+        self.slider_x.setValue(0)
         self.label_x = Qtw.QLabel("X")
         self.label_x.setAlignment(Qt.Qt.AlignCenter)
         self.myLayout.addWidget(self.label_x, 3, 1)
@@ -57,9 +57,9 @@ class initialisation_settings(Qtw.QFrame):
 
         self.slider_y = Qtw.QSlider(Qt.Qt.Horizontal)
         self.myLayout.addWidget(self.slider_y, 4, 2)
-        self.slider_y.setMinimum(0)
-        self.slider_y.setMaximum(3277)
-        self.slider_y.setValue(3277//2)
+        self.slider_y.setMinimum(-1800)
+        self.slider_y.setMaximum(1800)
+        self.slider_y.setValue(0)
         self.label_y = Qtw.QLabel("Y")
         self.label_y.setAlignment(Qt.Qt.AlignCenter)
         self.myLayout.addWidget(self.label_y, 4, 1)
@@ -154,23 +154,25 @@ class map_GUI(Qtw.QFrame):
         self.posX = pos[PosEnum.POS_X]
         self.posY = pos[PosEnum.POS_Y]
         self.theta = pos[PosEnum.POS_THETA]
-        print(pos)
-        self.debugLabel.setText( str(self.posX) + " ; " + str(self.posY) + " ; " + str(self.theta))
+
+        self.debugLabel.setText( "X : " + str(self.posX) + " ; " + "Y : " + str(self.posY) + " ; " + "Theta : " + str(self.theta))
+
+        GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
+        pixmap = QPixmap("map_created.jpg")
+        self.label_image.setPixmap(pixmap)
 
     def initUI(self):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
-        self.myLayout = Qtw.QHBoxLayout(self)
+        self.myLayout = Qtw.QGridLayout(self)
         
         self.debugLabel=Qtw.QLabel("")
-        self.myLayout.addWidget(self.debugLabel)
+        self.debugLabel.setAlignment(Qt.Qt.AlignCenter)
+        self.myLayout.addWidget(self.debugLabel, 1, 1)
 
         self.label_image = Qtw.QLabel()
-        self.myLayout.addWidget(self.label_image)
+        self.myLayout.addWidget(self.label_image, 2, 1)
         self.beacon = GUI.beacon()
-        GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
-        pixmap = QPixmap("map_created.jpg")
-        self.label_image.setPixmap(pixmap)
 
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
@@ -197,27 +199,36 @@ class MainWindow(Qtw.QWidget):
 
         self.mainLayout=Qtw.QGridLayout(self)
         self.setLayout(self.mainLayout)
+
         self.mainLayout.setSpacing(0)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
 
         self.posCompution = PositionComputation(self)
 
         ## WIDGETS ##
+        self.lab_im = Qtw.QLabel()
+        pixmp = QPixmap("Logo_Goose_Nav.png")
+        self.pixmp = pixmp.scaled(self.width()//2,self.height()//2,Qt.Qt.KeepAspectRatio)
+        self.lab_im.setPixmap(self.pixmp)
+        self.lab_im.resize(self.width()//2,self.height()//2)
+        self.lab_im.setAlignment(Qt.Qt.AlignCenter)
+        self.mainLayout.addWidget(self.lab_im, 1, 1)
+
         self.commWidget=Comm()
-        self.mainLayout.addWidget(self.commWidget, 1, 1)
+        self.mainLayout.addWidget(self.commWidget, 2, 1)
 
         self.debugWidget=DebugMessage()
-        self.mainLayout.addWidget(self.debugWidget, 2, 1)
+        self.mainLayout.addWidget(self.debugWidget, 3, 1)
 
         self.settings=initialisation_settings(self)
-        self.mainLayout.addWidget(self.settings, 3, 1)
+        self.mainLayout.addWidget(self.settings, 4, 1)
 
         self.sendButton = Qtw.QPushButton("Click click")
-        self.mainLayout.addWidget(self.sendButton, 4, 1)
+        self.mainLayout.addWidget(self.sendButton, 5, 1)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
         self.mapWidget = map_GUI()
-        self.mainLayout.addWidget(self.mapWidget, 1, 2, 4, 1)
+        self.mainLayout.addWidget(self.mapWidget, 1, 2, 5, 1)
 
         ## COMMUNICATION ##
 
