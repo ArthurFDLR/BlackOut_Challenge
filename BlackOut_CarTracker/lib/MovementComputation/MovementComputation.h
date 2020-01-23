@@ -42,7 +42,8 @@ public:
     Vector oriVecLast; // [deg]
     Vector oriVec; // [deg]
 
-    int carSpeed; // [m/s]
+    int carSpeedRaw; // [km/h]
+    float carSpeed; // [m/s]
 
     float _deltaTheta = 0.0; // [deg]
     float _deltaX = 0.0; // [m]
@@ -98,7 +99,6 @@ private:
     unsigned long _deltaT = 0;
     unsigned long _lastTime = 0;
 
-    float _deltaX = 0.0;
     float _lastX = 0.0;
 
     // OBD

@@ -44,8 +44,8 @@ class PositionComputation(Qtw.QWidget):
     def computePosition(self):
         
         ## POSITION COMPUTATION ##
-        self.dictPosOut[PosEnum.POS_X] = 0.0; # += cos(th) * self.dictDeltaIn[PosEnum.DELTA_X];
-        self.dictPosOut[PosEnum.POS_Y] = 0.0; # += sin(th) * self.dictDeltaIn[PosEnum.DELTA_Y];
-        self.dictPosOut[PosEnum.POS_THETA] = 0.0; # += self.dictDeltaIn[PosEnum.DELTA_THETA];
+        self.dictPosOut[PosEnum.POS_X] = 0.0 # += cos(th) * self.dictDeltaIn[PosEnum.DELTA_X];
+        self.dictPosOut[PosEnum.POS_Y] = 0.0 # += sin(th) * self.dictDeltaIn[PosEnum.DELTA_Y];
+        self.dictPosOut[PosEnum.POS_THETA] -= self.dictDeltaIn[PosEnum.DELTA_THETA]
 
         self.newPosition.emit(self.dictPosOut)

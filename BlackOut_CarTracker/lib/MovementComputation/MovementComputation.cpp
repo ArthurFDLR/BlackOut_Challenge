@@ -87,13 +87,13 @@ bool MovementComputation::updateDataOBD()
         }
     }
 
-    if (! obd.readPID(PID_RPM, carSpeed))
+    if (! obd.readPID(PID_RPM, carSpeedRaw))
     {
-        carSpeed = 0;
+        carSpeedRaw = 0;
         out = false;
     }
 
-    carSpeed *= KmH2MS;
+    carSpeed = (float) KmH2MS * carSpeedRaw;
 
     if (obd.errors > 2)
     {
@@ -114,7 +114,14 @@ void MovementComputation::computeRotationMovement(bool rawData)
 {
     if (rawData)
     {
-        _deltaTheta = (oriVecRawLast.z - oriVecRaw.z) * expFilterCoeff + _deltaTheta * (1.0 - expFilterCoeff);
+        if ((oriVecRawLast.z - oriVecRaw.z < 200.0) && (oriVecRawLast.z - oriVecRaw.z > -200.0))  // Avoid problem when total rotation
+        {
+            _deltaTheta = (oriVecRawLast.z - oriVecRaw.z) * expFilterCoeff + _deltaTheta * (1.0 - expFilterCoeff);
+        }
+        else
+        {
+            _deltaTheta = (oriVecRawLast.z - oriVecRaw.z - ((oriVecRawLast.z > oriVecRaw.z) ? 1.0 : -1.0) * 360.0) * expFilterCoeff + _deltaTheta * (1.0 - expFilterCoeff);
+        }
     }
     else
     {
