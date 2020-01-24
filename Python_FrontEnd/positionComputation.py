@@ -46,7 +46,6 @@ class PositionComputation(Qtw.QWidget):
 
         self.newPosition.emit(self.dictPosOut)
     
-    
     def computePosition(self):
         
         ## POSITION COMPUTATION ##

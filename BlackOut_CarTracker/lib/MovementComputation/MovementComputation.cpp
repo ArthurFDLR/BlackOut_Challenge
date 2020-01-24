@@ -87,9 +87,11 @@ bool MovementComputation::updateDataOBD()
         }
     }
 
-    if (! obd.readPID(PID_RPM, carSpeedRaw))
+    int speed;
+    if (obd.readPID(PID_SPEED, speed))
     {
-        carSpeedRaw = 0;
+        _comPort_ptr->print(speed);
+        carSpeedRaw = speed;
         out = false;
     }
 

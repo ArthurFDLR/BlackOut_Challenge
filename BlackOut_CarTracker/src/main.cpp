@@ -58,9 +58,12 @@ void loop()
 
     moveComputation_ptr->updateDataIMU();
     moveComputation_ptr->computeRotationMovement();
+
+    /*
     communicationPort.print("| Delta_theta : ");
     communicationPort.print(moveComputation_ptr->_deltaTheta);
     communicationPort.print("\n");
+    */
 
     /*
     moveComputation_ptr->updateDataOBD();
