@@ -58,7 +58,7 @@ def create_frame_map(X, Y, theta, beacon):
     image_trans = cv2.warpAffine(image,mat_trans,(w_image,h_image))
 
     #  Rotation
-    mat_rot = cv2.getRotationMatrix2D(pos_goose, -theta, 1) #(h_image,w_image)
+    mat_rot = cv2.getRotationMatrix2D(pos_goose, theta, 1) #(h_image,w_image)
     image_rot = cv2.warpAffine(image_trans,mat_rot, (w_image,h_image))
     #  Selection de la ROI
     image_zoom = image_rot[(h_image-h_screen)//2-center_screen:(h_image+h_screen)//2-center_screen,(w_image-w_screen)//2:(w_image+w_screen)//2]

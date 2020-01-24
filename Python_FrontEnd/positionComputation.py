@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject,pyqtSignal,QThread
 from PyQt5 import QtWidgets as Qtw
 import time
 from enum import Enum
+import math
 
 class PosEnum(Enum):
     POS_X = 1
@@ -39,13 +40,18 @@ class PositionComputation(Qtw.QWidget):
             self.computePosition()
 
     def posCalibrationReception(self, x : dict):
-        self.newPosition.emit(x)
+        self.dictPosOut[PosEnum.POS_THETA] = x[PosEnum.POS_THETA]
+        self.dictPosOut[PosEnum.POS_X] = x[PosEnum.POS_X]
+        self.dictPosOut[PosEnum.POS_Y] = x[PosEnum.POS_Y]
+
+        self.newPosition.emit(self.dictPosOut)
+    
     
     def computePosition(self):
         
         ## POSITION COMPUTATION ##
-        self.dictPosOut[PosEnum.POS_X] = 0.0 # += cos(th) * self.dictDeltaIn[PosEnum.DELTA_X];
-        self.dictPosOut[PosEnum.POS_Y] = 0.0 # += sin(th) * self.dictDeltaIn[PosEnum.DELTA_Y];
-        self.dictPosOut[PosEnum.POS_THETA] -= self.dictDeltaIn[PosEnum.DELTA_THETA]
+        self.dictPosOut[PosEnum.POS_THETA] += self.dictDeltaIn[PosEnum.DELTA_THETA]
+        self.dictPosOut[PosEnum.POS_X] += math.sin(math.radians(self.dictPosOut[PosEnum.POS_THETA])) * self.dictDeltaIn[PosEnum.DELTA_X]
+        self.dictPosOut[PosEnum.POS_Y] += math.cos(math.radians(self.dictPosOut[PosEnum.POS_THETA])) * self.dictDeltaIn[PosEnum.DELTA_X]
 
         self.newPosition.emit(self.dictPosOut)

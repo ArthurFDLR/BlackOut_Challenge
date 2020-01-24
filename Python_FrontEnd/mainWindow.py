@@ -235,8 +235,7 @@ class MainWindow(Qtw.QWidget):
         self.posCompution.newPosition.connect(self.mapWidget.updatePosition)
 
         self.settings.newPositionCalibration.connect(self.posCompution.posCalibrationReception)
-        self.settings.newCalibrationState.connect(
-            lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n"))  # Send 'y' if check box true, else send 'n'
+        self.settings.newCalibrationState.connect(lambda x: self.sendMessage.emit("y") if (x) else self.sendMessage.emit("n"))  # Send 'y' if check box true, else send 'n'
 
         if (True): #True if Com port connexion established
             self.parserThread=Parser(self)

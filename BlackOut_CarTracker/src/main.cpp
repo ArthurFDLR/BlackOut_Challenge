@@ -73,7 +73,7 @@ void loop()
     if (communicationState)
     {
       String listName[] = {"dTh", "dX"};
-      float listValue[] = {moveComputation_ptr->_deltaTheta, 0.0};
+      float listValue[] = {moveComputation_ptr->_deltaTheta, 5};
       communicationPort.sendData(2, listName, listValue);
     }
   }
