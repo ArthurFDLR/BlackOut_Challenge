@@ -42,11 +42,13 @@ public:
     Vector oriVecLast; // [deg]
     Vector oriVec; // [deg]
 
-    int carSpeedRaw; // [km/h]
-    float carSpeed; // [m/s]
+    int carSpeedRaw = 0; // [km/h]
+    float carSpeed = 0.0; // [m/s]
 
     float _deltaTheta = 0.0; // [deg]
     float _deltaX = 0.0; // [m]
+
+    unsigned long _deltaT = 0;
 
     //// CALIBRATION ////
     /////////////////////
@@ -95,8 +97,7 @@ private:
     Madgwick filterMahony;
 
     // Data computation
-    const float expFilterCoeff = 0.8;
-    unsigned long _deltaT = 0;
+    const float expFilterCoeff = 1.0;
     unsigned long _lastTime = 0;
 
     float _lastX = 0.0;

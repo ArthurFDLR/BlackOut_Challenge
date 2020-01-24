@@ -88,14 +88,17 @@ bool MovementComputation::updateDataOBD()
     }
 
     int speed;
-    if (obd.readPID(PID_SPEED, speed))
+    if (! obd.readPID(PID_SPEED, speed))
     {
         _comPort_ptr->print(speed);
         carSpeedRaw = speed;
         out = false;
+        _comPort_ptr->println("error OBD");
     }
 
+    carSpeedRaw = speed;
     carSpeed = (float) KmH2MS * carSpeedRaw;
+    // _comPort_ptr->println(speed);
 
     if (obd.errors > 2)
     {
@@ -109,7 +112,7 @@ bool MovementComputation::updateDataOBD()
 
 void MovementComputation::computeLinearMovement()
 {
-    _deltaX = ((float)_deltaT/1000.0) * carSpeed;
+    _deltaX = ((float) (_deltaT / 1000.0)) * carSpeed;
 }
 
 void MovementComputation::computeRotationMovement(bool rawData)
