@@ -18,7 +18,7 @@ void setup()
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
   timeLast = millis();
-  moveComputation_ptr = new MovementComputation(loopFrequency, &Serial, false);
+  moveComputation_ptr = new MovementComputation(loopFrequency, &Serial);
 
   delay(50);
 }
@@ -59,8 +59,8 @@ void loop()
     moveComputation_ptr->updateDataIMU();
     moveComputation_ptr->computeRotationMovement();
 
-    // moveComputation_ptr->updateDataOBD();
-    // moveComputation_ptr->computeLinearMovement();
+    moveComputation_ptr->updateDataOBD();
+    moveComputation_ptr->computeLinearMovement();
 
     /*
     communicationPort.print("| Delta_Theta : ");
@@ -76,7 +76,7 @@ void loop()
     if (communicationState)
     {
       String listName[] = {"dTh", "dX"};
-      float listValue[] = {moveComputation_ptr->_deltaTheta, 5};
+      float listValue[] = {moveComputation_ptr->_deltaTheta, moveComputation_ptr->_deltaX};
       communicationPort.sendData(2, listName, listValue);
     }
   }
