@@ -36,10 +36,10 @@ def create_frame_map(X, Y, theta, beacon):
     X_scaled = int(X * scale)
     Y_scaled = int(Y * scale)
     #  Taille de l'image dans l'écran du GPS
-    w_screen = 360
-    h_screen = 240
+    w_screen = 256
+    h_screen = 192
     #  Taille de l'image (carré) de la goose
-    w_g = 50
+    w_g = 40
     #  Position par rapport à l'axe Y de la goose
     goose_pos = 0.3
     #  Recuperation de la carte translatee precedente
@@ -92,13 +92,13 @@ def create_frame_map(X, Y, theta, beacon):
         w_screen // 2 - w_g // 2:w_screen // 2 + w_g // 2] = final
 
     #  Rond vert pour insister sur la presence d'une balise
-    if not beacon:
+    if beacon:
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3, (170, 255, 0), 2)
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//6, (170, 255, 0), 1)
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//2, (170, 255, 0), 1)
 
     #  Agrandissement de la carte
-    image_res = cv2.resize(image_zoom, None, None, 1.5, 1.5)
+    image_res = cv2.resize(image_zoom, None, None, 3, 3)
 
     #  Ecriture de la carte traitee a recuperer
     cv2.imwrite('map_created.jpg', image_res)

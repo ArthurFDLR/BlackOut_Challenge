@@ -6,25 +6,6 @@ from positionComputation import PositionComputation, PosEnum
 
 import Goose_GUI as GUI
 
-class Comm(Qtw.QFrame):
-    def __init__(self):
-        super().__init__()
-        self.setFrameShadow(Qtw.QFrame.Plain)
-        self.setFrameShape(Qtw.QFrame.StyledPanel)
-        self.myLayout=Qtw.QHBoxLayout(self)
-
-        self.lab=Qtw.QLabel("Last byte received : ")
-        self.lab.setAlignment(Qt.Qt.AlignCenter)
-        self.myLayout.addWidget(self.lab)
-
-        self.mess=Qtw.QLabel("")
-        self.myLayout.addWidget(self.mess)
-
-    def update(self, x : dict):
-        for name,value in x.items():
-            #print(name + " : " + str(value))
-            self.mess.setText(name + " : " + str(value))
-
 class initialisation_settings(Qtw.QFrame):
     newPositionCalibration = Qt.pyqtSignal(dict)
     newCalibrationState = Qt.pyqtSignal(bool)
@@ -156,6 +137,7 @@ class map_GUI(Qtw.QFrame):
         self.theta = pos[PosEnum.POS_THETA]
 
         self.debugLabel.setText( "X : " + str(self.posX) + " ; " + "Y : " + str(self.posY) + " ; " + "Theta : " + str(self.theta))
+        self.debugLabel.resize(self.width()//2,self.height()//2)
 
         GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
         pixmap = QPixmap("map_created.jpg")
@@ -180,6 +162,8 @@ class DebugMessage(Qtw.QFrame):
         self.setFrameShadow(Qtw.QFrame.Plain)
         self.setFrameShape(Qtw.QFrame.StyledPanel)
         self.myLayout=Qtw.QHBoxLayout(self)
+        self.lab = Qtw.QLabel("Console COM :")
+        self.myLayout.addWidget(self.lab)
         self.mess=Qtw.QLabel("")
         self.myLayout.addWidget(self.mess)
 
@@ -206,6 +190,7 @@ class MainWindow(Qtw.QWidget):
         self.posCompution = PositionComputation(self)
 
         ## WIDGETS ##
+
         self.lab_im = Qtw.QLabel()
         pixmp = QPixmap("Logo_Goose_Nav.png")
         self.pixmp = pixmp.scaled(self.width()//2,self.height()//2,Qt.Qt.KeepAspectRatio)
@@ -214,21 +199,18 @@ class MainWindow(Qtw.QWidget):
         self.lab_im.setAlignment(Qt.Qt.AlignCenter)
         self.mainLayout.addWidget(self.lab_im, 1, 1)
 
-        self.commWidget=Comm()
-        self.mainLayout.addWidget(self.commWidget, 2, 1)
-
         self.debugWidget=DebugMessage()
-        self.mainLayout.addWidget(self.debugWidget, 3, 1)
+        self.mainLayout.addWidget(self.debugWidget, 2, 1)
 
         self.settings=initialisation_settings(self)
-        self.mainLayout.addWidget(self.settings, 4, 1)
+        self.mainLayout.addWidget(self.settings, 3, 1)
 
         self.sendButton = Qtw.QPushButton("Click click")
-        self.mainLayout.addWidget(self.sendButton, 5, 1)
+        self.mainLayout.addWidget(self.sendButton, 4, 1)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
         self.mapWidget = map_GUI()
-        self.mainLayout.addWidget(self.mapWidget, 1, 2, 5, 1)
+        self.mainLayout.addWidget(self.mapWidget, 1, 2, 4, 1)
 
         ## COMMUNICATION ##
 
@@ -241,7 +223,6 @@ class MainWindow(Qtw.QWidget):
             self.parserThread=Parser(self)
 
             self.sendMessage.connect(self.parserThread.sendMessage) # When MainWindow emit message, the parser catch them and send on serial port
-            self.parserThread.newData.connect(self.commWidget.update) # When parser emit newData    ## TMP
             self.parserThread.newData.connect(self.posCompution.dataReception) # When parser emit newData, posComputation catch en translate to newPos
 
             self.parserThread.newDebug.connect(self.debugWidget.update) # Print to screen when debug message comming in
