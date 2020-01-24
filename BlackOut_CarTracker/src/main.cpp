@@ -11,14 +11,14 @@ MovementComputation *moveComputation_ptr;
 
 unsigned long timeLast;
 bool communicationState = false;
-const float loopFrequency = 1.0;
+const float loopFrequency = 5.0;
 
 void setup()
 {
   Serial.begin(115200);
   communicationPort.Setup(&Serial, &Serial);
   timeLast = millis();
-  moveComputation_ptr = new MovementComputation(loopFrequency, &Serial);
+  moveComputation_ptr = new MovementComputation(loopFrequency, &Serial, false);
 
   delay(50);
 }
@@ -59,9 +59,10 @@ void loop()
     moveComputation_ptr->updateDataIMU();
     moveComputation_ptr->computeRotationMovement();
 
-    moveComputation_ptr->updateDataOBD();
-    moveComputation_ptr->computeLinearMovement();
+    // moveComputation_ptr->updateDataOBD();
+    // moveComputation_ptr->computeLinearMovement();
 
+    /*
     communicationPort.print("| Delta_Theta : ");
     communicationPort.print(moveComputation_ptr->_deltaTheta);
     communicationPort.print("   | Delta_X : ");
@@ -69,6 +70,7 @@ void loop()
     communicationPort.print("   | Speed : ");
     communicationPort.print(moveComputation_ptr->carSpeed);
     communicationPort.print("\n");
+    */
 
     // Simulate movement
     if (communicationState)

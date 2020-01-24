@@ -45,6 +45,13 @@ class PositionComputation(Qtw.QWidget):
         self.dictPosOut[PosEnum.POS_Y] = x[PosEnum.POS_Y]
 
         self.newPosition.emit(self.dictPosOut)
+
+    def posBaliseReception(self):
+        self.dictPosOut[PosEnum.POS_THETA] = 0.0
+        self.dictPosOut[PosEnum.POS_X] = 0.0
+        self.dictPosOut[PosEnum.POS_Y] = 0.0
+
+        self.newPosition.emit(self.dictPosOut)
     
     def computePosition(self):
         
