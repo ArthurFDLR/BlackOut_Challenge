@@ -147,13 +147,23 @@ class map_GUI(Qtw.QFrame):
         self.posY = 0.0
         self.theta = 0.0
 
+        self.beaconCounter = 0
         self.beacon = False
         self.initUI()
+    
+    def updateBaliseMode(self):
+        self.beacon = True
+        self.beaconCounter = 0
 
     def updatePosition(self, pos : dict):
         self.posX = pos[PosEnum.POS_X]
         self.posY = pos[PosEnum.POS_Y]
         self.theta = pos[PosEnum.POS_THETA]
+
+        if ((self.beaconCounter < 5) and self.beacon):
+            self.beaconCounter += 1
+        elif (self.beacon) :
+            self.beacon = False
 
         self.debugLabel.setText( "X : " + str(self.posX) + " ; " + "Y : " + str(self.posY) + " ; " + "Theta : " + str(self.theta))
 
@@ -214,6 +224,9 @@ class MainWindow(Qtw.QWidget):
         self.lab_im.setAlignment(Qt.Qt.AlignCenter)
         self.mainLayout.addWidget(self.lab_im, 1, 1)
 
+        self.mapWidget = map_GUI()
+        self.mainLayout.addWidget(self.mapWidget, 1, 2, 5, 1)
+
         self.commWidget=Comm()
         self.mainLayout.addWidget(self.commWidget, 2, 1)
 
@@ -223,12 +236,15 @@ class MainWindow(Qtw.QWidget):
         self.settings=initialisation_settings(self)
         self.mainLayout.addWidget(self.settings, 4, 1)
 
-        self.sendButton = Qtw.QPushButton("Click click")
+        self.sendButton = Qtw.QPushButton("Test connection")
         self.mainLayout.addWidget(self.sendButton, 5, 1)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
-        self.mapWidget = map_GUI()
-        self.mainLayout.addWidget(self.mapWidget, 1, 2, 5, 1)
+        self.baliseButton = Qtw.QPushButton("Balise")
+        self.mainLayout.addWidget(self.baliseButton, 0, 3)
+        self.baliseButton.clicked.connect(self.mapWidget.updateBaliseMode)
+        self.baliseButton.clicked.connect(self.posCompution.posBaliseReception)
+
 
         ## COMMUNICATION ##
 

@@ -92,7 +92,7 @@ def create_frame_map(X, Y, theta, beacon):
         w_screen // 2 - w_g // 2:w_screen // 2 + w_g // 2] = final
 
     #  Rond vert pour insister sur la presence d'une balise
-    if not beacon:
+    if beacon:
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3, (170, 255, 0), 2)
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//6, (170, 255, 0), 1)
         cv2.circle(image_zoom, (w_screen//2, h_screen//2 + center_screen), 2*w_g//3 + w_g//2, (170, 255, 0), 1)
