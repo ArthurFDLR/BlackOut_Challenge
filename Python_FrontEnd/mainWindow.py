@@ -166,6 +166,10 @@ class map_GUI(Qtw.QFrame):
         self.myLayout.addWidget(self.label_image, 2, 1)
         self.beacon = GUI.beacon()
 
+        GUI.create_frame_map(self.posX, self.posY, self.theta, self.beacon)
+        pixmap = QPixmap("map_created.jpg")
+        self.label_image.setPixmap(pixmap)
+
 class DebugMessage(Qtw.QFrame):
     def __init__(self):
         super().__init__()
@@ -210,7 +214,7 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.lab_im, 1, 1)
 
         self.mapWidget = map_GUI()
-        self.mainLayout.addWidget(self.mapWidget, 1, 2, 5, 1)
+        self.mainLayout.addWidget(self.mapWidget, 1, 2, 4, 1)
 
         self.debugWidget=DebugMessage()
         self.mainLayout.addWidget(self.debugWidget, 2, 1)
@@ -219,7 +223,7 @@ class MainWindow(Qtw.QWidget):
         self.mainLayout.addWidget(self.settings, 3, 1)
 
         self.sendButton = Qtw.QPushButton("Test connection")
-        self.mainLayout.addWidget(self.sendButton, 5, 1)
+        self.mainLayout.addWidget(self.sendButton, 4, 1)
         self.sendButton.clicked.connect(lambda : self.sendMessage.emit("!"))
 
         self.baliseButton = Qtw.QPushButton("Balise")
