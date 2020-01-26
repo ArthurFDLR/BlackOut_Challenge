@@ -98,7 +98,6 @@ bool MovementComputation::updateDataOBD()
 
     carSpeedRaw = speed;
     carSpeed = (float) KmH2MS * carSpeedRaw;
-    // _comPort_ptr->println(speed);
 
     if (obd.errors > 2)
     {

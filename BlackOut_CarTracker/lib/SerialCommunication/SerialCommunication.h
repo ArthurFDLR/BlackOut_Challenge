@@ -44,6 +44,10 @@ public:
     //        String* values : list of values
     int sendData(int nbrValue, String* names, float* values);
 
+    // GOAL / Send movement value in data format (example : '*2@dTh#value@dX#value') on telemetryPort
+    // IN   / Movement move : composed of discretized rotation and linear movement
+    int sendMovement(Movement move);
+
     // GOAL / Send a message on data format (example : '|message\n') on debugPort if debugPortEnable
     //        Do not use | and \n
     int sendDebugMessage(const String &message);

@@ -61,6 +61,15 @@ int SerialCommunication::sendData(int nbrValue, String* names, float* values)
     return 0;
 }
 
+int SerialCommunication::sendMovement(Movement move)
+{
+    String listName[] = {"dTh", "dX"};
+    float listValue[] = {move.dX, move.dTheta};
+    sendData(2, listName, listValue);
+    return 0;
+}
+
+
 int SerialCommunication::sendDebugMessage(const String &message)
 {
     if (_debugPortEnable)

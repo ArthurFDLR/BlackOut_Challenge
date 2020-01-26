@@ -5,10 +5,10 @@
 #include <SerialCommunication.h>
 #include <MovementComputation.h>
 
-ORIENTATION ori;
 SerialCommunication communicationPort;
 MovementComputation *moveComputation_ptr;
 
+Movement move;
 unsigned long timeLast;
 bool communicationState = false;
 const float loopFrequency = 5.0;
@@ -56,29 +56,10 @@ void loop()
       break;
     }
 
-    moveComputation_ptr->updateDataIMU();
-    moveComputation_ptr->computeRotationMovement();
+    moveComputation_ptr->update();
+    move = moveComputation_ptr->getMovement();
 
-    moveComputation_ptr->updateDataOBD();
-    moveComputation_ptr->computeLinearMovement();
-
-    /*
-    communicationPort.print("| Delta_Theta : ");
-    communicationPort.print(moveComputation_ptr->_deltaTheta);
-    communicationPort.print("   | Delta_X : ");
-    communicationPort.print(moveComputation_ptr->_deltaX);
-    communicationPort.print("   | Speed : ");
-    communicationPort.print(moveComputation_ptr->carSpeed);
-    communicationPort.print("\n");
-    */
-
-    // Simulate movement
-    if (communicationState)
-    {
-      String listName[] = {"dTh", "dX"};
-      float listValue[] = {moveComputation_ptr->_deltaTheta, moveComputation_ptr->_deltaX};
-      communicationPort.sendData(2, listName, listValue);
-    }
+    communicationPort.sendMovement(move);
   }
 }
 #endif
