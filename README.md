@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="./.github/banner.jpg" width="500" alt="Frame-by-frame editor">
+   <img src="./.github/banner.jpg" alt="banner" width="500">
 </p>
 
 # The GooseNav project: an inter-locating network.
@@ -10,4 +10,4 @@
 
 
 
-[![Presentation GooseNav](.github\live_demo.gif)](https://www.youtube.com/watch?v=mV7XY-ihbcE "GooseNav")
+[![Presentation GooseNav](./.github/live_demo.gif)](https://www.youtube.com/watch?v=mV7XY-ihbcE "GooseNav")
