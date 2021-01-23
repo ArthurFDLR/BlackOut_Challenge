@@ -17,4 +17,5 @@ The proposed solution is built on three main elements:
 This prototype successfully demonstrates the precision of a simple dead-reckoning system without re-calibration.
 
 [![Presentation GooseNav](./.github/live_demo.gif)](https://youtu.be/mV7XY-ihbcE?t=102 "GooseNav")
+
 [**See full demonstration**](https://youtu.be/mV7XY-ihbcE?t=102 "GooseNav")
